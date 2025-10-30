@@ -1,24 +1,35 @@
 import React from 'react';
-import logo from './logo.svg';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import SearchResults from './pages/SearchResults';
+import RecipeDetail from './components/RecipeDetail';
+import RecipeList from './components/RecipeList';
+import RecipeForm from './components/RecipeForm';
 
 function App() {
   return (
-    <div className="text-center">
-      <header className="bg-gray-800 text-white flex flex-col items-center justify-center min-h-screen text-3xl">
-        <img src={logo} className="pointer-events-none h-40 animate-spin" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="text-blue-400"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/recipes" element={<RecipeList />} />        {/* All recipes */}
+        <Route path="/recipe/new" element={<RecipeForm />} />     {/* Create new recipe */}
+        <Route path="/recipe/:id" element={<RecipeDetail />} />   {/* Recipe detail / remix */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/search" element={<SearchResults />} />
+      </Routes>
+      <Footer />
+    </Router>
   );
 }
 

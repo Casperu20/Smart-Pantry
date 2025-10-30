@@ -1,0 +1,46 @@
+type User @table {
+  displayName: String!
+  email: String
+  photoUrl: String
+  createdAt: Timestamp!
+}
+
+type Recipe @table {
+  creator: User
+  title: String!
+  description: String
+  instructions: String!
+  prepTimeMinutes: Int
+  cookTimeMinutes: Int
+  imageUrl: String
+  cuisine: String
+  createdAt: Timestamp!
+}
+
+type Ingredient @table {
+  name: String!
+  unit: String
+}
+
+type RecipeIngredient @table(key: ["recipe", "ingredient"]) {
+  recipe: Recipe!
+  ingredient: Ingredient!
+  quantity: String!
+  notes: String
+}
+
+type PantryItem @table(key: ["user", "ingredient"]) {
+  user: User!
+  ingredient: Ingredient!
+  quantity: String!
+  purchasedAt: Timestamp
+  expiresAt: Timestamp
+}
+
+type Comment @table {
+  user: User!
+  recipe: Recipe!
+  content: String!
+  parentComment: Comment
+  createdAt: Timestamp!
+}
