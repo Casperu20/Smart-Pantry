@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '../firebase/config';
-import { 
-  collection, addDoc, getDocs, deleteDoc, 
-  doc, updateDoc, serverTimestamp 
-} from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { auth, db } from "../firebase/config";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { Link } from "react-router-dom";
+import RecipeChatbot from "../components/RecipeChatbot";
 
 function Pantry() {
   const [user, setUser] = useState(null);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  
-  // Form states
-  const [itemName, setItemName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const [aiResponse, setAiResponse] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-
+  const [ingredients, setIngredients] = useState([{ name: "", quantity: "", unit: "" }]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -38,159 +36,126 @@ function Pantry() {
   const fetchPantryItems = async (userId) => {
     try {
       setLoading(true);
-      const pantryRef = collection(db, 'users', userId, 'pantry');
+      const pantryRef = collection(db, "users", userId, "pantry");
       const snapshot = await getDocs(pantryRef);
-      const items = snapshot.docs.map(doc => ({
+      const items = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       setPantryItems(items);
     } catch (error) {
-      console.error('Error fetching pantry:', error);
+      console.error("Error fetching pantry:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleIngredientChange = (index, field, value) => {
+    const newIngredients = [...ingredients];
+    newIngredients[index][field] = value;
+    setIngredients(newIngredients);
+  };
+
+  const addIngredientField = () => {
+    setIngredients([...ingredients, { name: "", quantity: "", unit: "" }]);
+  };
+
+  const removeIngredientField = (index) => {
+    if (ingredients.length > 1) {
+      setIngredients(ingredients.filter((_, i) => i !== index));
+    }
+  };
+
   const handleAddItem = async (e) => {
     e.preventDefault();
-    if (!user || !itemName.trim()) return;
+    if (!user) return;
+
+    const validIngredients = ingredients.filter((ing) => ing.name.trim() !== "");
+    if (validIngredients.length === 0) {
+      alert("Please add at least one ingredient.");
+      return;
+    }
 
     try {
-      await addDoc(collection(db, 'users', user.uid, 'pantry'), {
-        name: itemName.trim(),
-        quantity: quantity || 'N/A',
-        unit: unit || '',
-        addedAt: serverTimestamp()
-      });
-      
-      setItemName('');
-      setQuantity('');
-      setUnit('');
+      for (const ing of validIngredients) {
+        await addDoc(collection(db, "users", user.uid, "pantry"), {
+          name: ing.name.trim(),
+          quantity: ing.quantity || "",
+          unit: ing.unit || "",
+          addedAt: serverTimestamp(),
+        });
+      }
+      setIngredients([{ name: "", quantity: "", unit: "" }]);
       setShowAddForm(false);
       fetchPantryItems(user.uid);
     } catch (error) {
-      console.error('Error adding item:', error);
-      alert('Failed to add item');
+      console.error("Error adding ingredients:", error);
+      alert("Failed to add ingredients");
     }
   };
 
   const handleDeleteItem = async (itemId) => {
     if (!user) return;
-    
-    if (window.confirm('Remove this item from your pantry?')) {
+
+    if (window.confirm("Remove this item from your pantry?")) {
       try {
-        await deleteDoc(doc(db, 'users', user.uid, 'pantry', itemId));
+        await deleteDoc(doc(db, "users", user.uid, "pantry", itemId));
         fetchPantryItems(user.uid);
       } catch (error) {
-        console.error('Error deleting item:', error);
+        console.error("Error deleting item:", error);
       }
     }
   };
 
   const handleUpdateQuantity = async (itemId, currentQty, currentUnit) => {
-    const newQty = prompt('Enter new quantity:', currentQty);
+    const newQty = prompt("Enter new quantity:", currentQty);
     if (newQty !== null && user) {
       try {
-        await updateDoc(doc(db, 'users', user.uid, 'pantry', itemId), {
-          quantity: newQty
+        await updateDoc(doc(db, "users", user.uid, "pantry", itemId), {
+          quantity: newQty,
         });
         fetchPantryItems(user.uid);
       } catch (error) {
-        console.error('Error updating quantity:', error);
+        console.error("Error updating quantity:", error);
       }
     }
   };
 
-  const handleWhatCanICook = async () => {
-  if (pantryItems.length === 0) {
-    alert("Your pantry is empty!");
-    return;
-  }
-
-  setAiResponse("");
-  setAiLoading(true);
-
-  try {
-    const ingredientList = pantryItems.map(i => i.name).join(", ");
-    const response = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "mistral:7b-instruct",
-        prompt: `I have the following ingredients: ${ingredientList}. Suggest 3 recipes I can cook right now. Include short names and brief descriptions.`,
-      }),
-    });
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let fullText = "";
-
-    let buffer = "";
-
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-
-  buffer += decoder.decode(value, { stream: true });
-  const parts = buffer.split("\n");
-
-  // Keep the last incomplete part in the buffer
-  buffer = parts.pop();
-
-  for (const part of parts) {
-    if (!part.trim()) continue;
-    try {
-      const json = JSON.parse(part);
-      if (json.response) {
-        setAiResponse(prev => prev + json.response);
-      }
-    } catch {
-      // Ignore invalid JSON chunks until the rest arrives
-    }
-  }
-}
-
-
-  } catch (err) {
-    console.error("Error calling Ollama:", err);
-    setAiResponse("⚠️ Could not connect to AI server. Make sure Ollama is running with mistral:7b-instruct.");
-  }
-
-  setAiLoading(false);
-};
-
-
-  const filteredItems = pantryItems.filter(item =>
+  const filteredItems = pantryItems.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-gray-600">Loading pantry...</div>
+      <div className="flex justify-center items-center h-screen bg-white dark:bg-gray-900">
+        <div className="text-xl text-gray-600 dark:text-gray-300">Loading pantry...</div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+      <div className="flex flex-col justify-center items-center h-screen bg-white dark:bg-gray-900">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
           Please login to access your pantry
         </h2>
-        <Link to="/login" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+        <Link
+          to="/login"
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+        >
           Login
         </Link>
       </div>
     );
   }
 
+  const units = ["", "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste"];
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 min-h-screen bg-white dark:bg-gray-900">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-green-700 mb-2">My Pantry</h1>
-        <p className="text-gray-600">
+        <h1 className="text-4xl font-bold text-green-700 dark:text-green-500 mb-2">My Pantry</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           Keep track of what you have at home and discover recipes you can make right now!
         </p>
       </div>
@@ -199,70 +164,77 @@ while (true) {
       <div className="flex flex-wrap gap-4 mb-6">
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition shadow-md"
         >
-          {showAddForm ? 'Cancel' : '+ Add Ingredient'}
+          {showAddForm ? "Cancel" : "+ Add Ingredients"}
         </button>
-        <button
-          onClick={handleWhatCanICook}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+        <Link
+          to="/recipes/suggestions"
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-md"
         >
-          {aiLoading ? "Thinking..." : "🍳 What Can I Cook?"}
-        </button>
+          🍳 What Can I Cook?
+        </Link>
       </div>
-      {aiResponse && (
-        <div className="bg-gray-900 text-white p-6 rounded-lg mb-8 shadow-md">
-          <h3 className="text-2xl font-semibold mb-3 text-green-400">
-            AI Recipe Suggestions
-          </h3>
-          {aiResponse
-            .split(/\n|\d\./) // split numbered recipes
-            .filter(line => line.trim())
-            .map((line, index) => (
-              <p key={index} className="mb-2 text-gray-200">
-                {line.trim()}
-              </p>
-            ))}
-        </div>
-      )}
 
-
-
-      {/* Add Item Form */}
+      {/* Add Ingredients Form */}
       {showAddForm && (
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md mb-6">
-          <h3 className="text-xl font-semibold mb-4 dark:text-gray-100">Add New Ingredient</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Add Ingredients</h3>
           <form onSubmit={handleAddItem} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Ingredient name *"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Quantity (optional)"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500"
-              />
-              <input
-                type="text"
-                placeholder="Unit (e.g., cups, kg)"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500"
-              />
-            </div>
+            {ingredients.map((ingredient, index) => (
+              <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <input
+                  type="text"
+                  placeholder="Ingredient name *"
+                  value={ingredient.name}
+                  onChange={(e) => handleIngredientChange(index, "name", e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Quantity"
+                  value={ingredient.quantity}
+                  onChange={(e) => handleIngredientChange(index, "quantity", e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+                <select
+                  value={ingredient.unit}
+                  onChange={(e) => handleIngredientChange(index, "unit", e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  {units.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit || "Unit"}
+                    </option>
+                  ))}
+                </select>
+                {ingredients.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeIngredientField(index)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
             <button
-              type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+              type="button"
+              onClick={addIngredientField}
+              className="text-green-600 dark:text-green-500 font-semibold hover:text-green-700 dark:hover:text-green-400"
             >
-              Add to Pantry
+              + Add Another Ingredient
             </button>
+            <div className="mt-4">
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition shadow-md"
+              >
+                Save Ingredients
+              </button>
+            </div>
           </form>
         </div>
       )}
@@ -275,75 +247,81 @@ while (true) {
             placeholder="Search your pantry..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
 
       {/* Pantry Items */}
       {filteredItems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md hover:shadow-lg transition"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize">
-                  {item.name}
-                </h3>
-                <button
-                  onClick={() => handleDeleteItem(item.id)}
-                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="flex justify-between items-center">
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize">
+                    {item.name}
+                  </h3>
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                  >
+                    ✕
+                  </button>
+                </div>
+
                 <button
                   onClick={() => handleUpdateQuantity(item.id, item.quantity, item.unit)}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-500"
+                  className="text-gray-600 dark:text-gray-400 text-sm mb-1 hover:text-green-600 dark:hover:text-green-500 cursor-pointer"
                 >
                   <span className="font-medium">
                     {item.quantity} {item.unit}
                   </span> (click to edit)
                 </button>
+
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                  Added{" "}
+                  {item.addedAt?.toDate
+                    ? item.addedAt.toDate().toLocaleDateString()
+                    : "recently"}
+                </p>
               </div>
-              
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                Added {item.addedAt?.toDate ? item.addedAt.toDate().toLocaleDateString() : 'recently'}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div className="mt-8 bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
+            <h3 className="text-lg font-semibold text-green-700 dark:text-green-500 mb-2">
+              Pantry Stats
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              You have <strong>{pantryItems.length}</strong> ingredient{pantryItems.length !== 1 ? 's' : ''} in your pantry
+            </p>
+          </div>
+        </>
       ) : (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-            {searchTerm ? 'No ingredients found matching your search.' : 'Your pantry is empty!'}
+            {searchTerm
+              ? "No ingredients found matching your search."
+              : "Your pantry is empty!"}
           </p>
           {!searchTerm && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition shadow-md"
             >
               Add Your First Ingredient
             </button>
           )}
         </div>
       )}
-
-      {/* Stats */}
-      {pantryItems.length > 0 && (
-        <div className="mt-8 bg-green-50 dark:bg-green-300/30 p-6 rounded-lg">
-          <h3 className="text-lg font-semibold text-green-700 dark:text-green-300 mb-2">
-            Pantry Stats
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            You have <strong className="dark:text-green-100">{pantryItems.length}</strong> ingredient{pantryItems.length !== 1 ? 's' : ''} in your pantry
-          </p>
+        <div className="mt-12">
+          <RecipeChatbot />
         </div>
-      )}
     </div>
   );
 }

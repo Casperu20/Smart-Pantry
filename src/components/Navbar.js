@@ -69,13 +69,13 @@ function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             <Link 
               to="/" 
-              className={`transition ${isCurrentPath('/') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+              className={`transition ${isCurrentPath('/') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
             >
               Home
             </Link>
             <Link 
               to="/recipes" 
-              className={`transition ${isCurrentPath('/recipes') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+              className={`transition ${isCurrentPath('/recipes') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
             >
               Recipes
             </Link>
@@ -83,25 +83,25 @@ function Navbar() {
               <>
                 <Link 
                   to="/pantry" 
-                  className={`transition ${isCurrentPath('/pantry') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+                  className={`transition ${isCurrentPath('/pantry') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
                 >
                   My Pantry
                 </Link>
                 <Link 
                   to="/recipe/new" 
-                  className={`transition ${isCurrentPath('/recipe/new') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+                  className={`transition ${isCurrentPath('/recipe/new') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
                 >
                   Create
                 </Link>
                 <Link 
                   to="/profile" 
-                  className={`transition ${isCurrentPath('/profile') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+                  className={`transition ${isCurrentPath('/profile') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
                 >
                   Profile
                 </Link>
                 <Link 
                   to="/favorites" 
-                  className={`transition ${isCurrentPath('/favorites') ? 'text-white dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
+                  className={`transition ${isCurrentPath('/favorites') ? 'text-blue dark:text-white' : 'text-gray-700 dark:text-gray-400'} hover:text-green-600 dark:hover:text-green-500`}
                 >
                   Favorites
                 </Link>
