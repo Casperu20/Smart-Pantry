@@ -5,6 +5,18 @@ import { collection, getDocs, doc, setDoc, getDoc, query, orderBy, limit } from 
 import { Link } from 'react-router-dom';
 import RecipeImage from '../components/RecipeImage';
 
+const CATEGORY_TO_MEALTYPE = {
+  Breakfast: ["Breakfast"],
+  Lunch: ["Lunch"],
+  Dinner: ["Dinner"],
+  Dessert: ["Dinner", "Snack"],
+  Snack: ["Snack"],
+  "Main Course": ["Lunch", "Dinner"],
+  "Side Dish": ["Lunch", "Dinner"]
+};
+
+
+
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
@@ -160,29 +172,41 @@ function MealPlanner() {
       <h1 className="text-2xl font-bold mb-4">Weekly Meal Planner</h1>
 
       {/* Meal plan grid (non-modifiable) */}
-      <table className="table-auto border border-gray-300 mb-4 w-full">
-        <thead>
+      <table className="w-full border border-gray-700 rounded-lg text-sm shadow-lg">
+        <thead className="bg-gray-800 text-gray-200">
           <tr>
-            <th className="border p-2">Meal</th>
-            {DAYS_OF_WEEK.map(day => <th key={day} className="border p-2">{day}</th>)}
+            <th className="border border-gray-700 p-2 text-left font-semibold w-24">Meal</th>
+            {DAYS_OF_WEEK.map(day => (
+              <th
+                key={day}
+                className="border border-gray-700 p-2 text-center font-medium w-[12%]"
+              >
+                {day}
+              </th>
+            ))}
           </tr>
         </thead>
+
         <tbody>
           {MEAL_TYPES.map(mealType => (
-            <tr key={mealType}>
-              <td className="border p-2 font-semibold">{mealType}</td>
+            <tr key={mealType} className="hover:bg-gray-800/30 transition">
+              <td className="border p-2 font-semibold bg-gray-900 text-gray-300">
+                {mealType}
+              </td>
               {DAYS_OF_WEEK.map(day => {
-                // Filter recipes that match this meal type (case-insensitive)
-                const recipesForMealType = recipes.filter(
-                  r => r.category?.toLowerCase() === mealType.toLowerCase()
-                );
+                const recipesForMealType = recipes.filter(r => {
+                  const cat = r.category?.trim().toLowerCase();
+                  const normalizedMap = Object.fromEntries(
+                    Object.entries(CATEGORY_TO_MEALTYPE).map(([k, v]) => [k.toLowerCase(), v])
+                  );
+                  return normalizedMap[cat]?.includes(mealType);
+                });
                 const selectedRecipes = mealPlan[day]?.[mealType] || [];
-
                 return (
-                  <td key={day} className="border p-2">
-                    {/* Dropdown to choose recipe */}
+                  <td key={day} className="border p-2 align-top">
+                    {/* Dropdown */}
                     <select
-                      className="w-full border border-gray-300 rounded p-1 dark:bg-gray-900 dark:text-white"
+                      className="w-full text-xs bg-gray-900 text-gray-200 border border-gray-700 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400 hover:border-green-500 transition"
                       value=""
                       onChange={(e) => {
                         const selectedId = e.target.value;
@@ -191,7 +215,7 @@ function MealPlanner() {
                         if (recipe) addRecipeToSlot(day, mealType, recipe);
                       }}
                     >
-                      <option value="">➕ Add Recipe</option>
+                      <option value="">➕ Add</option>
                       {recipesForMealType.map(recipe => (
                         <option key={recipe.id} value={recipe.id}>
                           {recipe.name}
@@ -199,28 +223,39 @@ function MealPlanner() {
                       ))}
                     </select>
 
+
                     {/* Display selected recipes */}
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-2 flex flex-col gap-1">
                       {selectedRecipes.map(recipe => (
                         <div
                           key={recipe.id}
-                          className="bg-gray-800 text-white p-1 rounded text-sm cursor-pointer hover:bg-red-500 transition"
+                          className="flex items-center justify-between bg-gray-800 text-gray-100 px-2 py-1 rounded-md text-xs shadow-sm hover:bg-red-600 transition cursor-pointer group"
                           onClick={() => removeRecipeFromSlot(day, mealType, recipe.id)}
                           title="Click to remove this recipe"
                         >
-                          {recipe.name}
+                          <div className="flex items-center gap-2">
+                            {recipe.imageUrl && (
+                              <img
+                                src={recipe.imageUrl}
+                                alt={recipe.name}
+                                className="w-5 h-5 rounded object-cover"
+                              />
+                            )}
+                            <span className="truncate max-w-[100px]">{recipe.name}</span>
+                          </div>
+                          <span className="opacity-0 group-hover:opacity-100 text-red-300 ml-1">✕</span>
                         </div>
                       ))}
                     </div>
+
                   </td>
                 );
               })}
             </tr>
           ))}
         </tbody>
-
-
       </table>
+
 
       <button
         onClick={generateShoppingList}
@@ -231,14 +266,23 @@ function MealPlanner() {
 
       {shoppingList.length > 0 && (
         <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Ingredients Needed</h2>
-          <ul>
-            {shoppingList.map((ing, index) => (
-              <li key={index}>
-                {ing.quantity} {ing.unit} {ing.name}
-              </li>
-            ))}
-          </ul>
+          <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-4 max-w-md">
+            <h2 className="text-xl font-bold mb-3 text-green-400">🧺 Ingredients Needed</h2>
+            <ul className="divide-y divide-gray-700">
+              {shoppingList.map((ing, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between py-2 px-1 hover:bg-gray-800 transition rounded-md"
+                >
+                  <span className="text-gray-300">{ing.name}</span>
+                  <span className="text-gray-100 font-semibold">
+                    {ing.quantity} {ing.unit}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
         </div>
       )}
 
