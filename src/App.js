@@ -31,7 +31,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/search" element={<SearchResults />} />
-            
+
             {/* Protected Routes - Require Login */}
             <Route 
               path="/recipe/new" 
@@ -65,7 +65,15 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            
+            <Route
+              path="/meal-planner"
+              element={
+                <ProtectedRoute>
+                  <MealPlanner />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Admin Only Route */}
             <Route 
               path="/admin" 
