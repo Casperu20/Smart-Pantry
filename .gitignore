@@ -21,3 +21,45 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# -------------------------
+# Node.js
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+.env
+.env.*
+*.local
+
+# -------------------------
+# Editor / OS files
+# -------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# -------------------------
+# Logs
+# -------------------------
+logs/
+*.log
+*.log.*
+debug.log
+
+# -------------------------
+# Various
+# -------------------------
+coverage/
+temp/
+tmp/
+.cache/
+.next/
+out/
+

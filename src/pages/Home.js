@@ -2,48 +2,260 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import RecipeImage from '../components/RecipeImage';
 
 function Home() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Guest Data
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const [stats, setStats] = useState({ recipes: 0, users: 0 });
+
+  // Dashboard Data (Logged In)
+  const [myRecipes, setMyRecipes] = useState([]);
+  const [pantryCount, setPantryCount] = useState(0);
+  const [favorites, setFavorites] = useState([]);
+  const [allRecipes, setAllRecipes] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        fetchDashboardData(currentUser);
+      } else {
+        fetchGuestData();
+      }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Helper: Sort recipes to show images first
+  const sortRecipesByImage = (recipes) => {
+    return recipes.sort((a, b) => {
+      // If A has image and B doesn't, A comes first
+      if (a.imageUrl && !b.imageUrl) return -1;
+      // If B has image and A doesn't, B comes first
+      if (!a.imageUrl && b.imageUrl) return 1;
+      return 0; // Keep original order (usually date)
+    });
+  };
 
-  const fetchData = async () => {
+  const fetchGuestData = async () => {
     try {
-      // Get top recipes
-      const recipesQuery = query(
-        collection(db, 'recipes'),
-        orderBy('createdAt', 'desc'),
-        limit(3)
-      );
+      const recipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'), limit(3));
       const recipesSnapshot = await getDocs(recipesQuery);
       setFeaturedRecipes(recipesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-      // Get stats
       const allRecipesSnapshot = await getDocs(collection(db, 'recipes'));
       const usersSnapshot = await getDocs(collection(db, 'users'));
-      setStats({
-        recipes: allRecipesSnapshot.size,
-        users: usersSnapshot.size
-      });
+      setStats({ recipes: allRecipesSnapshot.size, users: usersSnapshot.size });
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching guest data:', error);
     }
   };
 
+  const fetchDashboardData = async (currentUser) => {
+    try {
+      // 1. Fetch ALL recipes
+      const allRecipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'));
+      const allRecipesSnap = await getDocs(allRecipesQuery);
+      const allRawRecipes = allRecipesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // 2. Filter for "My Recipes", "Favorites", and sort "All Recipes"
+      const myFilteredRecipes = allRawRecipes.filter(recipe => recipe.userId === currentUser.uid);
+      const favoriteFilteredRecipes = allRawRecipes.filter(recipe => recipe.favoritedBy?.includes(currentUser.uid));
+      const allSortedRecipes = sortRecipesByImage(allRawRecipes);
+
+      // 3. Set state
+      setMyRecipes(myFilteredRecipes);
+      setFavorites(favoriteFilteredRecipes);
+      setAllRecipes(allSortedRecipes);
+
+      // 4. Pantry Count
+      const pantrySnap = await getDocs(collection(db, 'users', currentUser.uid, 'pantry'));
+      setPantryCount(pantrySnap.size);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-green-600 text-xl font-bold animate-pulse">Loading Chef's Kitchen...</div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // VIEW 1: USER DASHBOARD (Logged In)
+  // ==================================================================================
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+        
+        {/* Compact Header */}
+        <div className="bg-white dark:bg-gray-800 px-4 py-6 shadow-sm border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <div>
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-0.5">Kitchen Dashboard</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hello, {user.displayName?.split(' ')[0] || 'Chef'}! 👨‍🍳</h1>
+            </div>
+            <div className="bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+               <span className="text-sm font-bold text-green-700 dark:text-green-400">{pantryCount} items in pantry</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 mt-6 space-y-8">
+          
+          {/* SECTION 1: ALL RECIPES (Horizontal Scroll) */}
+          <section>
+            <div className="flex justify-between items-center mb-3 px-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                🍽️ All Recipes
+              </h2>
+              <Link to="/recipes" className="text-sm font-semibold text-green-600 hover:text-green-700">View All</Link>
+            </div>
+            <div className="flex overflow-x-auto pb-4 -mx-4 px-4 space-x-4 snap-x scroll-smooth no-scrollbar">
+              {allRecipes.slice(0, 10).map(recipe => (
+                <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="min-w-[260px] md:min-w-[300px] bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden snap-start group relative">
+                  <div className="h-32 relative">
+                    <RecipeImage recipe={recipe} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-bold text-gray-900 dark:text-white truncate">{recipe.name}</h3>
+                    <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{recipe.category || 'Main'}</span>
+                      <span>{recipe.prepTime || '30m'}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* SECTION 2: MY RECIPES (Horizontal Scroll) */}
+          <section>
+            <div className="flex justify-between items-center mb-3 px-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                📖 My Cookbook
+              </h2>
+              <Link to="/profile" className="text-sm font-semibold text-green-600 hover:text-green-700">View All</Link>
+            </div>
+            
+            {myRecipes.length > 0 ? (
+              <div className="flex overflow-x-auto pb-4 -mx-4 px-4 space-x-4 snap-x scroll-smooth no-scrollbar">
+                {/* Add New Button (First item) */}
+                <Link to="/add-recipe" className="min-w-[140px] md:min-w-[160px] h-48 flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-green-500 hover:text-green-500 transition snap-start">
+                  <span className="text-3xl mb-2">+</span>
+                  <span className="text-sm font-bold">Add New</span>
+                </Link>
+
+                {/* Recipe Cards */}
+                {myRecipes.slice(0, 9).map(recipe => (
+                  <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="min-w-[260px] md:min-w-[300px] bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden snap-start group relative">
+                    <div className="h-32 relative">
+                       <RecipeImage recipe={recipe} className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate">{recipe.name}</h3>
+                      <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span>{recipe.category || 'Main'}</span>
+                        <span>{recipe.prepTime || '30m'}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center border border-dashed border-gray-300 dark:border-gray-600">
+                <p className="text-gray-500 mb-2">Your cookbook is empty.</p>
+                <Link to="/add-recipe" className="text-green-600 font-bold hover:underline">Create your first recipe</Link>
+              </div>
+            )}
+          </section>
+
+          {/* SECTION 3: FAVORITES (Horizontal Scroll) */}
+          <section>
+            <div className="flex justify-between items-center mb-3 px-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                ❤️ Your Favorites
+              </h2>
+              <Link to="/profile" className="text-sm font-semibold text-green-600 hover:text-green-700">View All</Link>
+            </div>
+
+            <div className="flex overflow-x-auto pb-4 -mx-4 px-4 space-x-4 snap-x scroll-smooth no-scrollbar">
+              {favorites.slice(0, 10).map(recipe => (
+                <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="min-w-[200px] md:min-w-[240px] bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden snap-start">
+                  <div className="h-28 relative">
+                    <RecipeImage recipe={recipe} className="w-full h-full object-cover" />
+                    {/* Heart Icon Overlay */}
+                    <div className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-sm">
+                        <svg className="w-3 h-3 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">{recipe.name}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{recipe.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* SECTION 4: QUICK ACTIONS (Grid at bottom) */}
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 px-1">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Link to="/import-recipe" className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl flex items-center gap-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition border border-blue-100 dark:border-blue-800">
+                <span className="text-2xl">📸</span>
+                <div className="text-left">
+                    <div className="font-bold text-blue-900 dark:text-blue-100">Import</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-300">Scan Photo</div>
+                </div>
+              </Link>
+              
+              <Link to="/chatbot" className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl flex items-center gap-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition border border-purple-100 dark:border-purple-800">
+                <span className="text-2xl">🤖</span>
+                <div className="text-left">
+                    <div className="font-bold text-purple-900 dark:text-purple-100">AI Chef</div>
+                    <div className="text-xs text-purple-600 dark:text-purple-300">Ask Ideas</div>
+                </div>
+              </Link>
+
+              <Link to="/pantry" className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-2xl flex items-center gap-3 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition border border-orange-100 dark:border-orange-800">
+                <span className="text-2xl">🥕</span>
+                <div className="text-left">
+                    <div className="font-bold text-orange-900 dark:text-orange-100">Pantry</div>
+                    <div className="text-xs text-orange-600 dark:text-orange-300">Update Items</div>
+                </div>
+              </Link>
+
+              <Link to="/meal-planner" className="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl flex items-center gap-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition border border-green-100 dark:border-green-800">
+                <span className="text-2xl">📅</span>
+                <div className="text-left">
+                    <div className="font-bold text-green-900 dark:text-green-100">Planner</div>
+                    <div className="text-xs text-green-600 dark:text-green-300">Weekly Plan</div>
+                </div>
+              </Link>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // VIEW 2: GUEST LANDING PAGE (Your Original Style)
+  // ==================================================================================
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
       {/* Hero Section */}
@@ -59,37 +271,18 @@ function Home() {
                 Discover delicious recipes, track your ingredients, and never wonder "what's for dinner?" again.
               </p>
               <div className="flex flex-wrap gap-4">    
-                {user ? (
-                  <>
-                    <Link
-                      to="/recipes"
-                      className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
-                    >
-                      Browse Recipes 🍽️
-                    </Link>
-                    <Link
-                      to="/pantry"
-                      className="bg-white dark:bg-gray-800 text-green-600 dark:text-green-500 border-2 border-green-600 dark:border-green-500 px-8 py-4 rounded-xl hover:bg-green-50 dark:hover:bg-gray-700 transition shadow-lg font-semibold text-lg"
-            >
-              My Pantry 🥘
-            </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/register"
-                      className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
-                    >
-                      Get Started Free
-                    </Link>
-                    <Link
-                      to="/recipes"
-                      className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-lg font-semibold text-lg"
-                    >
-                      Explore Recipes
-                    </Link>
-                  </>
-                )}
+                  <Link
+                    to="/register"
+                    className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
+                  >
+                    Get Started Free
+                  </Link>
+                  <Link
+                    to="/recipes"
+                    className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-lg font-semibold text-lg"
+                  >
+                    Explore Recipes
+                  </Link>
               </div>
             </div>
 
