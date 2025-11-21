@@ -7,43 +7,359 @@ import RecipeImage from '../components/RecipeImage';
 
 function Home() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Guest Data
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const [stats, setStats] = useState({ recipes: 0, users: 0 });
+
+  // Dashboard Data (Logged In)
+  const [myRecipes, setMyRecipes] = useState([]);
+  const [pantryCount, setPantryCount] = useState(0);
+  const [favorites, setFavorites] = useState([]);
+  const [allRecipes, setAllRecipes] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        fetchDashboardData(currentUser);
+      } else {
+        fetchGuestData();
+      }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Helper: Sort recipes to show images first
+  const sortRecipesByImage = (recipes) => {
+    return recipes.sort((a, b) => {
+      if (a.imageUrl && !b.imageUrl) return -1;
+      if (!a.imageUrl && b.imageUrl) return 1;
+      return 0;
+    });
+  };
 
-  const fetchData = async () => {
+  const fetchGuestData = async () => {
     try {
-      // Get top recipes
-      const recipesQuery = query(
-        collection(db, 'recipes'),
-        orderBy('createdAt', 'desc'),
-        limit(3)
-      );
+      const recipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'), limit(3));
       const recipesSnapshot = await getDocs(recipesQuery);
       setFeaturedRecipes(recipesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-      // Get stats
       const allRecipesSnapshot = await getDocs(collection(db, 'recipes'));
       const usersSnapshot = await getDocs(collection(db, 'users'));
-      setStats({
-        recipes: allRecipesSnapshot.size,
-        users: usersSnapshot.size
-      });
+      setStats({ recipes: allRecipesSnapshot.size, users: usersSnapshot.size });
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching guest data:', error);
     }
   };
 
+  const fetchDashboardData = async (currentUser) => {
+    try {
+      // Fetch ALL recipes
+      const allRecipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'));
+      const allRecipesSnap = await getDocs(allRecipesQuery);
+      const allRawRecipes = allRecipesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // Filter and sort
+      const myFilteredRecipes = allRawRecipes.filter(recipe => recipe.userId === currentUser.uid);
+      const favoriteFilteredRecipes = allRawRecipes.filter(recipe => recipe.favoritedBy?.includes(currentUser.uid));
+      const allSortedRecipes = sortRecipesByImage(allRawRecipes);
+
+      setMyRecipes(myFilteredRecipes);
+      setFavorites(favoriteFilteredRecipes);
+      setAllRecipes(allSortedRecipes);
+
+      // Pantry Count
+      const pantrySnap = await getDocs(collection(db, 'users', currentUser.uid, 'pantry'));
+      setPantryCount(pantrySnap.size);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-green-600 text-xl font-bold animate-pulse">Loading Chef's Kitchen...</div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // VIEW 1: USER DASHBOARD (Logged In)
+  // ==================================================================================
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+        
+        {/* Compact Header */}
+        <div className="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 px-4 py-8 shadow-lg">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-3xl font-bold text-white">
+                Welcome back, {user.displayName?.split(' ')[0] || 'Chef'}! 👋
+              </h1>
+              <Link to="/pantry" className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
+                <span className="text-lg">🥕</span>
+                <span className="font-semibold">{pantryCount} items</span>
+              </Link>
+            </div>
+            <p className="text-green-50">Let's cook something delicious today!</p>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 mt-8 space-y-10">
+          
+          {/* SECTION 1: ALL RECIPES */}
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="text-3xl">🍽️</span>
+                All Recipes
+              </h2>
+              <Link 
+                to="/recipes" 
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold flex items-center gap-1 transition"
+              >
+                View More
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {allRecipes.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {allRecipes.slice(0, 4).map(recipe => (
+                  <Link 
+                    key={recipe.id} 
+                    to={`/recipe/${recipe.id}`}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:-translate-y-1"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <RecipeImage 
+                        recipe={recipe} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"></div>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="font-bold text-white text-lg drop-shadow-lg line-clamp-2">
+                          {recipe.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>🏷️</span>
+                          {recipe.category || 'Main'}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>⏱️</span>
+                          {recipe.prepTime || '30m'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <p className="text-gray-500 dark:text-gray-400">No recipes yet. Be the first to add one!</p>
+              </div>
+            )}
+          </section>
+
+          {/* SECTION 2: MY RECIPES */}
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="text-3xl">📖</span>
+                My Recipes
+              </h2>
+              <Link 
+                to="/profile" 
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold flex items-center gap-1 transition"
+              >
+                View More
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {myRecipes.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {myRecipes.slice(0, 4).map(recipe => (
+                  <Link 
+                    key={recipe.id} 
+                    to={`/recipe/${recipe.id}`}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:-translate-y-1"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <RecipeImage 
+                        recipe={recipe} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"></div>
+                      <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        MINE
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="font-bold text-white text-lg drop-shadow-lg line-clamp-2">
+                          {recipe.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>🏷️</span>
+                          {recipe.category || 'Main'}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>⏱️</span>
+                          {recipe.prepTime || '30m'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <p className="text-gray-500 dark:text-gray-400 mb-3">Your cookbook is empty</p>
+                <Link 
+                  to="/add-recipe" 
+                  className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition"
+                >
+                  Create Your First Recipe
+                </Link>
+              </div>
+            )}
+          </section>
+
+          {/* SECTION 3: FAVORITES */}
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="text-3xl">❤️</span>
+                Favorites
+              </h2>
+              <Link 
+                to="/profile" 
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold flex items-center gap-1 transition"
+              >
+                View More
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {favorites.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {favorites.slice(0, 4).map(recipe => (
+                  <Link 
+                    key={recipe.id} 
+                    to={`/recipe/${recipe.id}`}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:-translate-y-1"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <RecipeImage 
+                        recipe={recipe} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0"></div>
+                      <div className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full shadow-lg">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <h3 className="font-bold text-white text-lg drop-shadow-lg line-clamp-2">
+                          {recipe.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>🏷️</span>
+                          {recipe.category || 'Main'}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <span>⏱️</span>
+                          {recipe.prepTime || '30m'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <p className="text-gray-500 dark:text-gray-400">No favorites yet. Start exploring recipes!</p>
+              </div>
+            )}
+          </section>
+
+          {/* SECTION 4: QUICK ACTIONS */}
+          <section className="pb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span className="text-3xl">⚡</span>
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+              <Link 
+                to="/add-recipe" 
+                className="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-4xl mb-3">➕</div>
+                <div className="font-bold text-lg">Add Recipe</div>
+                <div className="text-sm text-green-100">Create new dish</div>
+              </Link>
+
+              <Link 
+                to="/import-recipe" 
+                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-4xl mb-3">📸</div>
+                <div className="font-bold text-lg">Import Recipe</div>
+                <div className="text-sm text-blue-100">Scan or type</div>
+              </Link>
+
+              <Link 
+                to="/chatbot" 
+                className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-4xl mb-3">🤖</div>
+                <div className="font-bold text-lg">AI Chef</div>
+                <div className="text-sm text-purple-100">Get suggestions</div>
+              </Link>
+
+              <Link 
+                to="/meal-planner" 
+                className="bg-gradient-to-br from-pink-500 to-pink-600 hover:from-orange-600 hover:to-orange-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <div className="text-4xl mb-3">📅</div>
+                <div className="font-bold text-lg">Meal Planner</div>
+                <div className="text-sm text-orange-100">Plan your week</div>
+              </Link>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // VIEW 2: GUEST LANDING PAGE (Unchanged)
+  // ==================================================================================
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
       {/* Hero Section */}
@@ -59,37 +375,18 @@ function Home() {
                 Discover delicious recipes, track your ingredients, and never wonder "what's for dinner?" again.
               </p>
               <div className="flex flex-wrap gap-4">    
-                {user ? (
-                  <>
-                    <Link
-                      to="/recipes"
-                      className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
-                    >
-                      Browse Recipes 🍽️
-                    </Link>
-                    <Link
-                      to="/pantry"
-                      className="bg-white dark:bg-gray-800 text-green-600 dark:text-green-500 border-2 border-green-600 dark:border-green-500 px-8 py-4 rounded-xl hover:bg-green-50 dark:hover:bg-gray-700 transition shadow-lg font-semibold text-lg"
-            >
-              My Pantry 🥘
-            </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/register"
-                      className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
-                    >
-                      Get Started Free
-                    </Link>
-                    <Link
-                      to="/recipes"
-                      className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-lg font-semibold text-lg"
-                    >
-                      Explore Recipes
-                    </Link>
-                  </>
-                )}
+                  <Link
+                    to="/register"
+                    className="bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
+                  >
+                    Get Started Free
+                  </Link>
+                  <Link
+                    to="/recipes"
+                    className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-lg font-semibold text-lg"
+                  >
+                    Explore Recipes
+                  </Link>
               </div>
             </div>
 

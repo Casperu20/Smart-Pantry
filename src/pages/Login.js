@@ -35,7 +35,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-blue-50 dark:bg-gray-900 p-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 max-w-6xl w-full shadow-2xl rounded-3xl overflow-hidden bg-white">
         {/* Left Side - Decorative */}
         <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-green-500 to-green-700 p-12 text-white">
