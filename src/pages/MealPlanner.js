@@ -43,6 +43,13 @@ const MEAL_EMOJIS = {
   Snack: '🍪'
 };
 
+const MEAL_COLORS = {
+  Breakfast: 'from-yellow-400 to-yellow-600',
+  Lunch: 'from-blue-400 to-blue-600',
+  Dinner: 'from-purple-400 to-purple-600',
+  Snack: 'from-pink-400 to-pink-600'
+};
+
 function MealPlanner() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -141,17 +148,10 @@ function MealPlanner() {
     setCategoryFilter('all');
   };
 
-  const getRecipesForMealType = (mealType) => {
-    return recipes.filter(r => {
-      const cat = r.category?.trim().toLowerCase();
-      return CATEGORY_TO_MEALTYPE[cat]?.includes(mealType);
-    });
-  };
-
   const filteredRecipes = recipes.filter(recipe => {
     const matchesSearch = recipe.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || recipe.category === categoryFilter;
-    const matchesMealType = selectedSlot
+    const matchesMealType = selectedSlot 
       ? CATEGORY_TO_MEALTYPE[recipe.category?.toLowerCase()]?.includes(selectedSlot.mealType)
       : true;
     return matchesSearch && matchesCategory && matchesMealType;
@@ -225,7 +225,7 @@ function MealPlanner() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
           Please login to use Meal Planner
         </h2>
-        <Link to="/login" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+        <Link to="/login" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
           Login
         </Link>
       </div>
@@ -233,114 +233,133 @@ function MealPlanner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6">
-      <div className="max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-6">
+      <div className="max-w-[1800px] mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-green-700 dark:text-green-500 mb-2">
             📅 Weekly Meal Planner
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Plan your meals for the week and generate a shopping list
+            Plan your meals for the week and generate a shopping list automatically
           </p>
         </div>
 
-        {/* Stats & Actions */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Planned Meals</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-500">
-              {getTotalRecipes()}
+        {/* Stats & Actions Bar */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Stats */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="flex items-center gap-6">
+                <div className="bg-green-50 dark:bg-green-900/20 px-6 py-3 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+                    Planned Meals
+                  </div>
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-500">
+                    {getTotalRecipes()}
+                  </div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+                    This Week
+                  </div>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-500">
+                    {DAYS_OF_WEEK.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={generateShoppingList}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition font-semibold flex items-center gap-2 transform hover:scale-105"
+              >
+                <span className="text-xl">🛒</span>
+                <span>Shopping List</span>
+              </button>
+
+              <button
+                onClick={clearMealPlan}
+                className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-lg shadow-lg transition font-semibold"
+              >
+                Clear All
+              </button>
             </div>
           </div>
-
-          <button
-            onClick={generateShoppingList}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md transition font-semibold flex items-center gap-2"
-          >
-            <span>🛒</span>
-            Generate Shopping List
-          </button>
-
-          <button
-            onClick={clearMealPlan}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg shadow-md transition font-semibold"
-          >
-            Clear All
-          </button>
         </div>
 
-        {/* Meal Plan Grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        {/* Meal Plan Grid - Desktop View */}
+        <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 text-white">
+              <thead className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800">
                 <tr>
-                  <th className="p-4 text-left font-semibold w-32 sticky left-0 bg-green-600 dark:bg-green-700 z-10">
-                    Meal
-                  </th>
+                  <th className="p-4 text-left text-white font-bold w-32">Meal Type</th>
                   {DAYS_OF_WEEK.map(day => (
-                    <th key={day} className="p-4 text-center font-semibold min-w-[180px]">
+                    <th key={day} className="p-4 text-center text-white font-bold min-w-[200px]">
                       {day}
                     </th>
                   ))}
                 </tr>
               </thead>
-
               <tbody>
                 {MEAL_TYPES.map((mealType, idx) => (
-                  <tr
+                  <tr 
                     key={mealType}
-                    className={`border-t border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-800'
-                      }`}
+                    className="border-t border-gray-200 dark:border-gray-700"
                   >
-                    <td className="p-4 font-semibold text-gray-800 dark:text-gray-200 sticky left-0 bg-gray-100 dark:bg-gray-900 z-10">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{MEAL_EMOJIS[mealType]}</span>
+                    <td className="p-4 bg-gray-50 dark:bg-gray-900">
+                      <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${MEAL_COLORS[mealType]} text-white px-4 py-2 rounded-lg font-semibold shadow-md`}>
+                        <span className="text-xl">{MEAL_EMOJIS[mealType]}</span>
                         <span>{mealType}</span>
                       </div>
                     </td>
                     {DAYS_OF_WEEK.map(day => {
                       const selectedRecipes = mealPlan[day]?.[mealType] || [];
                       return (
-                        <td key={day} className="p-3 align-top">
-                          {/* Add Recipe Button */}
-                          <button
-                            onClick={() => openRecipeSelector(day, mealType)}
-                            className="w-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-500 py-2 px-3 rounded-lg text-sm font-semibold transition border-2 border-dashed border-green-300 dark:border-green-700"
-                          >
-                            + Add Recipe
-                          </button>
-
-                          {/* Selected Recipes */}
-                          <div className="mt-2 space-y-2">
+                        <td key={day} className="p-4 align-top bg-white dark:bg-gray-800">
+                          <div className="space-y-3">
+                            {/* Selected Recipes */}
                             {selectedRecipes.map(recipe => (
                               <div
                                 key={recipe.id}
-                                className="group relative bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:shadow-md transition border border-gray-200 dark:border-gray-600 overflow-hidden"
+                                className="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-200 dark:border-gray-600 overflow-hidden"
                               >
-                                <Link to={`/recipe/${recipe.id}`} className="block p-2">
-                                  <div className="flex items-center gap-2">
-                                    {recipe.imageUrl ? (
-                                      <img
-                                        src={recipe.imageUrl}
-                                        alt={recipe.name}
-                                        className="w-10 h-10 rounded object-cover flex-shrink-0"
-                                      />
-                                    ) : (
-                                      <div className="w-10 h-10 rounded bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-lg">🍽️</span>
-                                      </div>
-                                    )}
+                                <Link to={`/recipe/${recipe.id}`} className="block">
+                                  <div className="flex items-start gap-3 p-3">
+                                    <div className="flex-shrink-0">
+                                      {recipe.imageUrl || recipe.images?.[0] ? (
+                                        <img
+                                          src={recipe.imageUrl || recipe.images[0]}
+                                          alt={recipe.name}
+                                          className="w-14 h-14 rounded-lg object-cover shadow-md"
+                                        />
+                                      ) : (
+                                        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${MEAL_COLORS[mealType]} flex items-center justify-center shadow-md`}>
+                                          <span className="text-2xl">🍽️</span>
+                                        </div>
+                                      )}
+                                    </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                                      <p className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-1 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-500 transition">
                                         {recipe.name}
                                       </p>
-                                      {recipe.prepTime && (
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                          ⏱️ {recipe.prepTime}
-                                        </p>
-                                      )}
+                                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                        {recipe.prepTime && (
+                                          <span className="flex items-center gap-1">
+                                            <span>⏱️</span>
+                                            {recipe.prepTime}
+                                          </span>
+                                        )}
+                                        {recipe.servings && (
+                                          <span className="flex items-center gap-1">
+                                            <span>👥</span>
+                                            {recipe.servings}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 </Link>
@@ -349,13 +368,22 @@ function MealPlanner() {
                                     e.preventDefault();
                                     removeRecipeFromSlot(day, mealType, recipe.id);
                                   }}
-                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs transition"
+                                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm transition shadow-lg font-bold"
                                   title="Remove recipe"
                                 >
                                   ✕
                                 </button>
                               </div>
                             ))}
+
+                            {/* Add Recipe Button */}
+                            <button
+                              onClick={() => openRecipeSelector(day, mealType)}
+                              className="w-full bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 hover:border-green-500 dark:hover:border-green-500 text-green-600 dark:text-green-500 py-3 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                            >
+                              <span className="text-lg">+</span>
+                              <span>Add Recipe</span>
+                            </button>
                           </div>
                         </td>
                       );
@@ -367,44 +395,115 @@ function MealPlanner() {
           </div>
         </div>
 
+        {/* Mobile View */}
+        <div className="lg:hidden space-y-6">
+          {DAYS_OF_WEEK.map(day => (
+            <div key={day} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-4">
+                <h2 className="text-xl font-bold text-white">{day}</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                {MEAL_TYPES.map(mealType => {
+                  const selectedRecipes = mealPlan[day]?.[mealType] || [];
+                  return (
+                    <div key={mealType}>
+                      <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${MEAL_COLORS[mealType]} text-white px-3 py-1.5 rounded-lg font-semibold text-sm mb-3`}>
+                        <span>{MEAL_EMOJIS[mealType]}</span>
+                        <span>{mealType}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {selectedRecipes.map(recipe => (
+                          <div
+                            key={recipe.id}
+                            className="group relative bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
+                          >
+                            <Link to={`/recipe/${recipe.id}`} className="flex items-center gap-3">
+                              {recipe.imageUrl && (
+                                <img
+                                  src={recipe.imageUrl}
+                                  alt={recipe.name}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+                                  {recipe.name}
+                                </p>
+                                {recipe.prepTime && (
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    ⏱️ {recipe.prepTime}
+                                  </p>
+                                )}
+                              </div>
+                            </Link>
+                            <button
+                              onClick={() => removeRecipeFromSlot(day, mealType, recipe.id)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => openRecipeSelector(day, mealType)}
+                          className="w-full bg-green-50 dark:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 text-green-600 dark:text-green-500 py-2 rounded-lg text-sm font-semibold"
+                        >
+                          + Add Recipe
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Shopping List Modal */}
         {showShoppingList && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <span>🛒</span>
-                  Shopping List
-                </h2>
-                <p className="text-green-100 text-sm mt-1">
-                  {shoppingList.length} ingredient{shoppingList.length !== 1 ? 's' : ''} needed for this week
-                </p>
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 overflow-auto backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden mt-12">
+             <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                      <span className="text-4xl">🛒</span>
+                      Shopping List
+                    </h2>
+                    <p className="text-green-100 text-sm mt-1">
+                      {shoppingList.length} ingredient{shoppingList.length !== 1 ? 's' : ''} needed for this week
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="p-6 overflow-y-auto max-h-[55vh]">
                 {shoppingList.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {shoppingList
                       .sort((a, b) => a.name.localeCompare(b.name))
                       .map((ing, index) => (
                         <div
                           key={index}
-                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                          className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:shadow-md transition border border-gray-200 dark:border-gray-600"
                         >
-                          <span className="text-gray-800 dark:text-gray-200 font-medium capitalize">
+                          <span className="text-gray-800 dark:text-gray-100 font-semibold capitalize">
                             {ing.name}
                           </span>
-                          <span className="text-gray-600 dark:text-gray-300 font-semibold">
+                          <span className="text-green-600 dark:text-green-500 font-bold ml-2">
                             {ing.quantity > 0 ? `${Math.round(ing.quantity * 100) / 100} ${ing.unit}` : ing.unit || 'as needed'}
                           </span>
                         </div>
                       ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">📝</div>
+                  <div className="text-center py-16">
+                    <div className="text-7xl mb-4">📝</div>
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                      No ingredients yet
+                    </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      No ingredients needed yet. Add recipes to your meal plan!
+                      Add recipes to your meal plan to generate a shopping list
                     </p>
                   </div>
                 )}
@@ -414,18 +513,18 @@ function MealPlanner() {
                 <button
                   onClick={() => {
                     const text = shoppingList
-                      .map(ing => `${ing.name}: ${ing.quantity > 0 ? `${Math.round(ing.quantity * 100) / 100} ${ing.unit}` : ing.unit || 'as needed'}`)
+                      .map(ing => `• ${ing.name}: ${ing.quantity > 0 ? `${Math.round(ing.quantity * 100) / 100} ${ing.unit}` : ing.unit || 'as needed'}`)
                       .join('\n');
                     navigator.clipboard.writeText(text);
-                    alert('Shopping list copied to clipboard!');
+                    alert('✅ Shopping list copied to clipboard!');
                   }}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-semibold transition"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition shadow-lg transform hover:scale-105"
                 >
                   📋 Copy to Clipboard
                 </button>
                 <button
                   onClick={() => setShowShoppingList(false)}
-                  className="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-3 rounded-lg font-semibold transition"
+                  className="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-6 py-4 rounded-xl font-bold transition"
                 >
                   Close
                 </button>
@@ -436,31 +535,31 @@ function MealPlanner() {
 
         {/* Recipe Selector Modal */}
         {showRecipeSelector && selectedSlot && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
-                <h2 className="text-2xl font-bold text-white">
-                  Add Recipe to {selectedSlot.day} - {selectedSlot.mealType}
-                </h2>
-                <p className="text-green-100 text-sm mt-1">
-                  Select a recipe from your collection
-                </p>
-              </div>
-
-              <div className="p-6">
-                {/* Search & Filter */}
-                <div className="flex gap-3 mb-6">
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 overflow-auto backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden mt-12">
+               <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
+                 <h2 className="text-3xl font-bold text-white mb-2">
+                   Add Recipe
+                 </h2>
+                 <p className="text-green-100">
+                   <span className="font-semibold">{selectedSlot.day}</span> • <span className="font-semibold">{selectedSlot.mealType}</span>
+                 </p>
+               </div>
+ 
+               <div className="p-6">
+                 {/* Search & Filter */}
+                 <div className="flex flex-col md:flex-row gap-3 mb-6">
                   <input
                     type="text"
-                    placeholder="Search recipes..."
+                    placeholder="🔍 Search recipes..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-green-600 dark:focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                   <select
                     value={categoryFilter}
                     onChange={e => setCategoryFilter(e.target.value)}
-                    className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-green-600 dark:focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="all">All Categories</option>
                     <option value="breakfast">Breakfast</option>
@@ -474,53 +573,67 @@ function MealPlanner() {
                 </div>
 
                 {/* Recipe Grid */}
-                <div className="overflow-y-auto max-h-[50vh]">
+                <div className="overflow-y-auto max-h-[60vh]">
                   {filteredRecipes.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {filteredRecipes.map(recipe => (
                         <button
                           key={recipe.id}
                           onClick={() => addRecipeToSlot(selectedSlot.day, selectedSlot.mealType, recipe)}
-                          className="text-left bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden hover:shadow-lg transition border-2 border-transparent hover:border-green-500 dark:hover:border-green-600"
+                          className="text-left bg-white dark:bg-gray-700 rounded-xl overflow-hidden hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500 transform hover:-translate-y-1"
                         >
-                          <RecipeImage recipe={recipe} className="w-full h-32" />
-                          <div className="p-3">
-                            <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-1 line-clamp-2">
+                          <RecipeImage recipe={recipe} className="w-full h-40" showBadge={true} />
+                          <div className="p-4">
+                            <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1 line-clamp-2">
                               {recipe.name}
                             </h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                               {recipe.description}
                             </p>
-                            {recipe.prepTime && (
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                                ⏱️ {recipe.prepTime} • 👥 {recipe.servings}
-                              </p>
+                            {(recipe.prepTime || recipe.servings) && (
+                              <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                                {recipe.prepTime && <span>⏱️ {recipe.prepTime}</span>}
+                                {recipe.servings && <span>👥 {recipe.servings}</span>}
+                              </div>
                             )}
                           </div>
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12">
-                      <div className="text-6xl mb-4">🔍</div>
+                    <div className="text-center py-16">
+                      <div className="text-6xl mb-4">🍽️</div>
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                        No recipes found
+                      </h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        No recipes found. Try a different search or{' '}
-                        <Link to="/recipe/new" className="text-green-600 hover:underline">
-                          create one
-                        </Link>
+                        Try a different search or add new recipes to your collection
                       </p>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => setShowRecipeSelector(false)}
-                  className="w-full bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-3 rounded-lg font-semibold transition"
-                >
-                  Close
-                </button>
+                <div className="mt-4 flex gap-3">
+                  <Link
+                    to="/recipes/new"
+                    className="ml-auto bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 text-green-600 dark:text-green-500 py-2 px-4 rounded-xl text-sm font-semibold"
+                    onClick={() => {
+                      setShowRecipeSelector(false);
+                      setSelectedSlot(null);
+                    }}
+                  >
+                    + Create Recipe
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setShowRecipeSelector(false);
+                      setSelectedSlot(null);
+                    }}
+                    className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
