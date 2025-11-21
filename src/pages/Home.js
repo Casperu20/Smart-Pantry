@@ -10,17 +10,9 @@ function Home() {
   const [loading, setLoading] = useState(true);
   
   // Guest Data
-  const [loading, setLoading] = useState(true);
-  
-  // Guest Data
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const [stats, setStats] = useState({ recipes: 0, users: 0 });
 
-  // Dashboard Data (Logged In)
-  const [myRecipes, setMyRecipes] = useState([]);
-  const [pantryCount, setPantryCount] = useState(0);
-  const [favorites, setFavorites] = useState([]);
-  const [allRecipes, setAllRecipes] = useState([]);
 
   // Dashboard Data (Logged In)
   const [myRecipes, setMyRecipes] = useState([]);
@@ -58,7 +50,6 @@ function Home() {
 
   const fetchGuestData = async () => {
     try {
-      const recipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'), limit(3));
       const recipesQuery = query(collection(db, 'recipes'), orderBy('createdAt', 'desc'), limit(3));
       const recipesSnapshot = await getDocs(recipesQuery);
       setFeaturedRecipes(recipesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
