@@ -1,4 +1,3 @@
-
 // server/gemini.js
 import dotenv from "dotenv";
 dotenv.config();
@@ -127,7 +126,7 @@ app.post("/api/extract-recipe", upload.single("file"), async (req, res) => {
 
 CRITICAL RULES:
 1. Return ONLY the JSON object, no markdown, no code blocks, no explanations
-2. Do NOT wrap the JSON in \\\json or \\\ markers
+2. Do NOT wrap the JSON in \`\`\`json or \`\`\` markers
 3. All fields are REQUIRED - provide best estimates if information is missing
 4. Quantities MUST be numbers (use 0 if unknown, not empty string)
 5. Use ONLY these units: "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste"
@@ -182,8 +181,8 @@ Extract the recipe and output ONLY the JSON object:`;
     console.log("Raw AI response:", rawText);
 
     // Remove markdown code blocks if present
-    rawText = rawText.replace(/^json\s*\n?/i, "").replace(/\n?$/i, "");
-    rawText = rawText.replace(/^\s*\n?/, "").replace(/\n?$/, "");
+    rawText = rawText.replace(/^```json\s*\n?/i, "").replace(/\n?```$/i, "");
+    rawText = rawText.replace(/^```\s*\n?/, "").replace(/\n?```$/, "");
     rawText = rawText.trim();
 
     // Try to parse JSON
@@ -248,7 +247,7 @@ app.post('/api/chat-stream', async (req, res) => {
         res.setHeader('Connection', 'keep-alive');
 
         const fullPrompt = `You are a helpful cooking assistant.
-${context ? User's pantry: ${context.join(", ")} : ""}
+${context ? `User's pantry: ${context.join(", ")}` : ""}
 
 User: ${prompt}
 Assistant:`;
@@ -266,10 +265,10 @@ Assistant:`;
                 try {
                     const data = JSON.parse(line);
                     if (data.response) {
-                        res.write(data: ${JSON.stringify({ text: data.response })}\n\n);
+                        res.write(`data: ${JSON.stringify({ text: data.response })}\n\n`);
                     }
                     if (data.done) {
-                        res.write(data: ${JSON.stringify({ done: true })}\n\n);
+                        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
                         res.end();
                     }
                 } catch { /* ignore partial */ }
@@ -278,13 +277,13 @@ Assistant:`;
 
         response.data.on("end", () => res.end());
         response.data.on("error", () => {
-            res.write(data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n);
+            res.write(`data: ${JSON.stringify({ error: "Stream interrupted" })}\n\n`);
             res.end();
         });
 
     } catch (error) {
         console.error("❌ Ollama error:", error);
-        res.write(data: ${JSON.stringify({ error: "Ollama unavailable" })}\n\n);
+        res.write(`data: ${JSON.stringify({ error: "Ollama unavailable" })}\n\n`);
         res.end();
     }
 });
@@ -300,11 +299,11 @@ app.get("/api/health", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(\nTest the server:);
+  console.log(`\nTest the server:`);
   console.log(`  curl http://localhost:${PORT}/api/health`);
-  console.log(🤖 Smart Pantry AI server running on http://localhost:${PORT});
-  console.log(🔑 Gemini key: ${process.env.GEMINI_API_KEY ? "OK" : "MISSING"});
-  console.log(🦙 Ollama model: ${OLLAMA_MODEL});
+  console.log(`🤖 Smart Pantry AI server running on http://localhost:${PORT}`);
+  console.log(`🔑 Gemini key: ${process.env.GEMINI_API_KEY ? "OK" : "MISSING"}`);
+  console.log(`🦙 Ollama model: ${OLLAMA_MODEL}`);
 });
 
 export default app;
