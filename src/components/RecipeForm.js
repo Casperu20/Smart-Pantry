@@ -195,7 +195,7 @@ const RecipeForm = ({ defaultRecipe = null, isRemix = false, originalRecipeId = 
     }
   };
 
-  const units = ["", "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste"];
+  const units = ["", "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste", "to serve"];
 
   return (
     <div className="max-w-4xl mx-auto mt-8 bg-white dark:bg-gray-900 p-8 shadow-lg rounded-2xl">

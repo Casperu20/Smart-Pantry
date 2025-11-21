@@ -149,7 +149,7 @@ function Pantry() {
     );
   }
 
-  const units = ["", "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste"];
+  const units = ["", "tsp", "tbsp", "cup", "ml", "l", "g", "kg", "oz", "lb", "piece", "pinch", "to taste", "to serve"];
 
   return (
     <div className="max-w-6xl mx-auto p-6 min-h-screen bg-white dark:bg-gray-900">
@@ -293,11 +293,11 @@ function Pantry() {
           </div>
 
           {/* Stats */}
-          <div className="mt-8 bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="mt-8 bg-green-50 dark:bg-gray-700 p-6 rounded-lg border border-green-200 dark:border-green-800">
             <h3 className="text-lg font-semibold text-green-700 dark:text-green-500 mb-2">
               Pantry Stats
             </h3>
-            <p className="text-gray-700 dark:text-gray-300">
+            <p className="text-gray-700 dark:text-yellow-500">
               You have <strong>{pantryItems.length}</strong> ingredient{pantryItems.length !== 1 ? 's' : ''} in your pantry
             </p>
           </div>
