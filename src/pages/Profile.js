@@ -133,7 +133,7 @@ function Profile() {
   }
 
   return (
-    <div className="dark:bg-gray-900 mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       {/* Profile Header */}
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-8 mb-6">
         <div className="flex items-center gap-6">
