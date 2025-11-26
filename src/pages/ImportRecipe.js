@@ -249,7 +249,8 @@ export default function ImportRecipe() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-8 bg-white dark:bg-gray-900 min-h-screen">
+      <div className="min-h-screen bg-white dark:bg-gray-900 w-full">
+     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <h1 className="text-4xl font-bold text-green-700 dark:text-green-500 mb-2">
         🤖 Import Recipe from Image
       </h1>
@@ -582,6 +583,7 @@ export default function ImportRecipe() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
