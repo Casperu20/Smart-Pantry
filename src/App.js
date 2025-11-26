@@ -13,6 +13,7 @@ import SearchResults from './pages/SearchResults';
 import RecipeDetail from './components/RecipeDetail';
 import RecipeList from './components/RecipeList';
 import RecipeForm from './components/RecipeForm';
+import AddRecipe from './pages/AddRecipe'; // Add this import
 import Pantry from './pages/Pantry';
 import RecipeSuggestions from './pages/RecipeSuggestions';
 import MealPlanner from './pages/MealPlanner';
@@ -39,6 +40,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RecipeForm />
+                </ProtectedRoute>
+              } 
+            />
+            {/* Add this new route for /add-recipe */}
+            <Route 
+              path="/add-recipe" 
+              element={
+                <ProtectedRoute>
+                  <AddRecipe />
                 </ProtectedRoute>
               } 
             />
