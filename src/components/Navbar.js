@@ -106,7 +106,7 @@ function Navbar() {
                 <Link to="/meal-planner" className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition font-medium">
                   Meal Planner
                 </Link>
-                <Link to="/recipe/new" className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition font-medium">
+                <Link to="/add-recipe" className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition font-medium">
                   Create
                 </Link>
                 <Link to="/import-recipe" className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition font-medium">
@@ -282,7 +282,7 @@ function Navbar() {
                     Meal Planner
                   </Link>
                   <Link 
-                    to="/recipe/new" 
+                    to="/add-recipe" 
                     className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition px-4 py-2 rounded-lg font-medium"
                     onClick={closeMobileMenu}
                   >
