@@ -289,21 +289,23 @@ function RecipeDetail() {
 
       {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-green-700 dark:text-green-500">Ingredients</h2>
+        {/* Ingredients - Dark Theme Enforced */}
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">Ingredients</h2>
           <ul className="space-y-2">
             {recipe.ingredients?.map((ing, i) => (
               <li key={i} className="flex items-start">
-                <span className="text-green-600 dark:text-green-500 mr-2">•</span>
-                <span className="text-gray-700 dark:text-gray-300">{renderIngredient(ing)}</span>
+                <span className="text-green-500 mr-2">•</span>
+                <span className="text-gray-300">{renderIngredient(ing)}</span>
               </li>
             ))}
           </ul>
         </div>
         
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-green-700 dark:text-green-500">Instructions</h2>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{recipe.instructions}</p>
+        {/* Instructions - Dark Theme Enforced */}
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">Instructions</h2>
+          <p className="text-gray-300 whitespace-pre-line">{recipe.instructions}</p>
         </div>
       </div>
 
@@ -332,10 +334,10 @@ function RecipeDetail() {
         </div>
       )}
 
-      {/* Remixes Section */}
+      {/* Remixes Section - Dark Theme Enforced */}
       {remixes.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-green-700">
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">
             Community Remixes ({remixes.length})
           </h2>
           <div className="overflow-x-auto">
@@ -344,17 +346,17 @@ function RecipeDetail() {
                 <Link
                   key={remix.id}
                   to={`/recipe/${remix.id}`}
-                  className="flex-shrink-0 w-64 bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition border-2 border-blue-200"
+                  className="flex-shrink-0 w-64 bg-gray-800 rounded-lg overflow-hidden hover:shadow-lg transition border border-gray-700"
                 >
                   <RecipeImage recipe={remix} className="w-full h-32" />
                   <div className="p-4">
-                    <h3 className="font-bold text-gray-800 mb-1 line-clamp-2">
+                    <h3 className="font-bold text-gray-200 mb-1 line-clamp-2">
                       {remix.name}
                     </h3>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                    <p className="text-sm text-gray-400 line-clamp-2 mb-2">
                       {remix.description}
                     </p>
-                    <p className="text-xs text-blue-600">
+                    <p className="text-xs text-green-500">
                       by {remix.authorName || remix.author?.split('@')[0] || 'Anonymous'}
                     </p>
                   </div>
@@ -365,9 +367,9 @@ function RecipeDetail() {
         </div>
       )}
 
-      {/* Comments Section */}
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700 dark:text-green-500">
+      {/* Comments Section - Dark Theme Enforced */}
+      <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold mb-4 text-green-500">
           Comments ({comments.length})
         </h2>
         
@@ -377,30 +379,30 @@ function RecipeDetail() {
               placeholder="Share your thoughts about this recipe..."
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600 min-h-24"
+              className="w-full border border-gray-700 bg-gray-800 text-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-600 min-h-24 placeholder-gray-500"
             />
             <button
               onClick={handleCommentSubmit}
               disabled={!newComment.trim()}
-              className="mt-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="mt-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
             >
               Post Comment
             </button>
           </div>
         ) : (
-          <p className="text-gray-500 mb-4">Please login to comment</p>
+          <p className="text-gray-400 mb-4">Please login to comment</p>
         )}
 
         {comments.length > 0 ? (
           <div className="space-y-4">
             {comments.map(comment => (
-              <div key={comment.id} className="border-l-4 border-green-500 dark:border-green-600 pl-4 py-2">
-                <p className="text-gray-800 dark:text-gray-200">{comment.text}</p>
+              <div key={comment.id} className="border-l-4 border-green-500 pl-4 py-2">
+                <p className="text-gray-200">{comment.text}</p>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+                  <span className="text-gray-400 text-sm font-medium">
                     {comment.authorName || comment.author}
                   </span>
-                  <span className="text-gray-400 dark:text-gray-500 text-xs">
+                  <span className="text-gray-500 text-xs">
                     {comment.createdAt?.toDate().toLocaleString()}
                   </span>
                 </div>
