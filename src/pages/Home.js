@@ -13,7 +13,6 @@ function Home() {
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const [stats, setStats] = useState({ recipes: 0, users: 0 });
 
-
   // Dashboard Data (Logged In)
   const [myRecipes, setMyRecipes] = useState([]);
   const [pantryCount, setPantryCount] = useState(0);
@@ -70,7 +69,7 @@ function Home() {
       const allRawRecipes = allRecipesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Filter and sort
-      const myFilteredRecipes = allRawRecipes.filter(recipe => recipe.userId === currentUser.uid);
+      const myFilteredRecipes = allRawRecipes.filter(recipe => recipe.authorId === currentUser.uid);
       const favoriteFilteredRecipes = allRawRecipes.filter(recipe => recipe.favoritedBy?.includes(currentUser.uid));
       const allSortedRecipes = sortRecipesByImage(allRawRecipes);
 
