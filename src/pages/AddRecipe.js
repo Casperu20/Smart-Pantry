@@ -82,6 +82,31 @@ function AddRecipe() {
         setRecipe({ ...recipe, images: newImages });
     };
 
+
+    const handleRecipeImageUpload = (index, file) => {
+        if (!file) return;
+
+        const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+        if (!validTypes.includes(file.type)) {
+            setError("Only JPG, PNG, or WebP images are allowed");
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            setError("File size must be less than 10MB");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const newImages = [...recipe.images];
+            newImages[index] = reader.result; // store preview as base64
+            setRecipe({ ...recipe, images: newImages });
+            setError("");
+        };
+        reader.readAsDataURL(file);
+    };
+
     const addImageField = () => {
         setRecipe({ ...recipe, images: [...recipe.images, ''] });
     };
@@ -256,24 +281,54 @@ function AddRecipe() {
                         <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2 text-sm sm:text-base">
                             Recipe Images (optional)
                         </label>
-                        <div className="space-y-2 sm:space-y-3">
+                        <div className="space-y-3 sm:space-y-4">
                             {recipe.images.map((image, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <input
-                                        className="flex-1 p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                        type="url"
-                                        placeholder={`Image ${index + 1} URL`}
-                                        value={image}
-                                        onChange={(e) => handleImageChange(index, e.target.value)}
-                                    />
-                                    {recipe.images.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImageField(index)}
-                                            className="px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm sm:text-base"
-                                        >
-                                            ✕
-                                        </button>
+                                <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-lg border border-gray-300 dark:border-gray-600">
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        {/* URL input */}
+                                        <input
+                                            type="url"
+                                            placeholder={`Image ${index + 1} URL`}
+                                            value={image}
+                                            onChange={(e) => handleImageChange(index, e.target.value)}
+                                            className="flex-1 p-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                        />
+
+                                        {/* File input with better styling */}
+                                        <div className="flex gap-2">
+                                            <label className="flex-1 sm:flex-none cursor-pointer">
+                                                <div className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm sm:text-base transition text-center">
+                                                    Choose File
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleRecipeImageUpload(index, e.target.files[0])}
+                                                    className="hidden"
+                                                />
+                                            </label>
+
+                                            {recipe.images.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeImageField(index)}
+                                                    className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm sm:text-base font-medium"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Preview if image exists */}
+                                    {image && (
+                                        <div className="mt-3">
+                                            <img 
+                                                src={image} 
+                                                alt={`Preview ${index + 1}`} 
+                                                className="w-full sm:w-48 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                                                onError={(e) => e.target.style.display = 'none'}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -281,7 +336,7 @@ function AddRecipe() {
                         <button
                             type="button"
                             onClick={addImageField}
-                            className="mt-2 text-sm sm:text-base text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 font-semibold"
+                            className="mt-3 text-sm sm:text-base text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 font-semibold"
                         >
                             + Add Another Image
                         </button>
