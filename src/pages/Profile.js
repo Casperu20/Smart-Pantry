@@ -147,27 +147,27 @@ function Profile() {
   return (
     <div className="dark:bg-gray-900 mx-auto p-6">
       {/* Profile Header */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-8 mb-6">
-        <div className="flex items-center gap-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 sm:p-8 mb-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
           <img
             src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&background=random&size=200`}
             alt={user.displayName || 'User'}
-            className="w-24 h-24 rounded-full object-cover border-4 border-green-500 dark:border-green-600"
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-green-500 dark:border-green-600"
             onError={(e) => {
               e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email)}&background=random&size=200`;
             }}
           />
-          <div className="flex-1">
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-300">
+          <div className="flex-1 text-center sm:text-left w-full">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-300">
               {user.displayName || 'User'}
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">{user.email}</p>
-            <div className="flex gap-4 mt-4 text-sm">
-              <div className="bg-green-50 dark:bg-green-800 px-4 py-2 rounded-lg">
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base break-all">{user.email}</p>
+            <div className="flex gap-2 sm:gap-4 mt-4 text-sm justify-center sm:justify-start">
+              <div className="bg-green-50 dark:bg-green-800 px-3 sm:px-4 py-2 rounded-lg">
                 <span className="font-semibold text-green-700 dark:text-green-200">{userRecipes.length}</span>
                 <span className="text-gray-600 dark:text-gray-400 ml-1">Recipes</span>
               </div>
-              <div className="bg-blue-50 dark:bg-blue-700 px-4 py-2 rounded-lg">
+              <div className="bg-blue-50 dark:bg-blue-700 px-3 sm:px-4 py-2 rounded-lg">
                 <span className="font-semibold text-blue-700 dark:text-blue-200">{favoriteRecipes.length}</span>
                 <span className="text-gray-600 dark:text-gray-400 ml-1">Favorites</span>
               </div>
@@ -175,7 +175,7 @@ function Profile() {
           </div>
           <button
             onClick={handleLogout}
-            className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
+            className="bg-red-500 text-white px-6 py-2.5 sm:py-3 rounded-lg hover:bg-red-600 transition text-sm sm:text-base w-full sm:w-auto"
           >
             Logout
           </button>
@@ -183,10 +183,10 @@ function Profile() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('recipes')}
-          className={`px-6 py-3 rounded-lg font-semibold transition ${
+          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base ${
             activeTab === 'recipes'
               ? 'bg-green-600 dark:bg-green-700 text-white'
               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -196,7 +196,7 @@ function Profile() {
         </button>
         <button
           onClick={() => setActiveTab('favorites')}
-          className={`px-6 py-3 rounded-lg font-semibold transition ${
+          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base ${
             activeTab === 'favorites'
               ? 'bg-green-600 dark:bg-green-700 text-white'
               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -212,18 +212,18 @@ function Profile() {
           {userRecipes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userRecipes.map(recipe => (
-                <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col h-[420px]">
+                <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col h-[400px] sm:h-[420px]">
                   <Link to={`/recipe/${recipe.id}`}>
-                    <RecipeImage recipe={recipe} className="w-full h-48 object-cover" showBadge={true} />
+                    <RecipeImage recipe={recipe} className="w-full h-40 sm:h-48 object-cover" showBadge={true} />
                   </Link>
-                  <div className="p-4 flex flex-col flex-1">
+                  <div className="p-3 sm:p-4 flex flex-col flex-1">
                     <Link to={`/recipe/${recipe.id}`}>
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-green-600 dark:hover:text-green-500 line-clamp-2 min-h-[3.5rem]">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-green-600 dark:hover:text-green-500 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]">
                         {recipe.name}
                       </h3>
                     </Link>
                     <div className="flex-1 mb-3">
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
                         {expandedDescriptions[recipe.id] 
                           ? recipe.description 
                           : truncateText(recipe.description, 100)}
@@ -231,28 +231,28 @@ function Profile() {
                       {recipe.description && recipe.description.length > 100 && (
                         <button
                           onClick={() => toggleDescription(recipe.id)}
-                          className="text-green-600 dark:text-green-500 text-sm mt-1 hover:underline"
+                          className="text-green-600 dark:text-green-500 text-xs sm:text-sm mt-1 hover:underline"
                         >
                           {expandedDescriptions[recipe.id] ? 'Read less' : 'Read more'}
                         </button>
                       )}
                     </div>
-                    <div className="flex gap-2 mt-auto">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-auto">
                       <Link
                         to={`/recipe/${recipe.id}`}
-                        className="flex-1 bg-green-600 text-white text-center px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm"
+                        className="bg-green-600 text-white text-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-green-700 transition text-xs sm:text-sm"
                       >
                         View
                       </Link>
                       <Link
                         to={`/recipe/edit/${recipe.id}`}
-                        className="flex-1 bg-blue-500 text-white text-center px-4 py-2 rounded-lg hover:bg-blue-600 transition text-sm"
+                        className="bg-blue-500 text-white text-center px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 transition text-xs sm:text-sm"
                       >
                         Edit
                       </Link>
                       <button
                         onClick={() => handleDeleteRecipe(recipe.id, recipe.name)}
-                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm"
+                        className="bg-red-500 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-red-600 transition text-xs sm:text-sm"
                       >
                         Delete
                       </button>
@@ -263,10 +263,10 @@ function Profile() {
             </div>
           ) : (
             <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">You haven't created any recipes yet</p>
+              <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg mb-4 px-4">You haven't created any recipes yet</p>
               <Link
                 to="/recipe/new"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+                className="inline-block bg-green-600 text-white px-6 py-2.5 sm:py-3 rounded-lg hover:bg-green-700 transition text-sm sm:text-base"
               >
                 Create Your First Recipe
               </Link>
@@ -280,18 +280,18 @@ function Profile() {
           {favoriteRecipes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoriteRecipes.map(recipe => (
-                <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-[400px]">
+                <div key={recipe.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition flex flex-col h-[380px] sm:h-[400px]">
                   <Link to={`/recipe/${recipe.id}`}>
-                    <RecipeImage recipe={recipe} className="w-full h-48 object-cover" showBadge={true} />
+                    <RecipeImage recipe={recipe} className="w-full h-40 sm:h-48 object-cover" showBadge={true} />
                   </Link>
-                  <div className="p-4 flex flex-col flex-1">
+                  <div className="p-3 sm:p-4 flex flex-col flex-1">
                     <Link to={`/recipe/${recipe.id}`}>
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-green-600 dark:hover:text-green-500 line-clamp-2 min-h-[3.5rem]">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-green-600 dark:hover:text-green-500 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]">
                         {recipe.name}
                       </h3>
                     </Link>
                     <div className="flex-1">
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
                         {expandedDescriptions[recipe.id] 
                           ? recipe.description 
                           : truncateText(recipe.description, 100)}
@@ -299,13 +299,13 @@ function Profile() {
                       {recipe.description && recipe.description.length > 100 && (
                         <button
                           onClick={() => toggleDescription(recipe.id)}
-                          className="text-green-600 dark:text-green-500 text-sm mt-1 hover:underline"
+                          className="text-green-600 dark:text-green-500 text-xs sm:text-sm mt-1 hover:underline"
                         >
                           {expandedDescriptions[recipe.id] ? 'Read less' : 'Read more'}
                         </button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 mt-2">
                       by {recipe.author?.split('@')[0]}
                     </p>
                   </div>
@@ -314,10 +314,10 @@ function Profile() {
             </div>
           ) : (
             <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">You haven't favorited any recipes yet</p>
+              <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg mb-4 px-4">You haven't favorited any recipes yet</p>
               <Link
                 to="/recipes"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+                className="inline-block bg-green-600 text-white px-6 py-2.5 sm:py-3 rounded-lg hover:bg-green-700 transition text-sm sm:text-base"
               >
                 Browse Recipes
               </Link>
