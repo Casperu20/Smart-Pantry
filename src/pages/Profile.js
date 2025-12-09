@@ -145,7 +145,7 @@ function Profile() {
   }
 
   return (
-    <div className="dark:bg-gray-900 mx-auto p-6">
+    <div className="min-h-screen dark:bg-gray-900 mx-auto p-6 transition-colors duration-200">
       {/* Profile Header */}
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-4 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">

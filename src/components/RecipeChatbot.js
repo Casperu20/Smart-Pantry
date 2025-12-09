@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 
-const RecipeChatbot = () => {
+const RecipeChatbot = ({ initiallyExpanded = false }) => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -12,7 +12,7 @@ const RecipeChatbot = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [pantryItems, setPantryItems] = useState([]);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
   const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef(null);
   const abortControllerRef = useRef(null);
@@ -28,6 +28,13 @@ const RecipeChatbot = () => {
   useEffect(() => {
     fetchPantryItems();
   }, []);
+
+  // Update expanded state when prop changes
+  useEffect(() => {
+    if (initiallyExpanded) {
+      setIsExpanded(true);
+    }
+  }, [initiallyExpanded]);
 
   const fetchPantryItems = async () => {
     const user = auth.currentUser;

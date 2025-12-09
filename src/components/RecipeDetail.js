@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   doc, getDoc, collection, addDoc, getDocs, 
-  query, where, orderBy, updateDoc, arrayUnion 
+  query, where, orderBy, updateDoc, arrayUnion, arrayRemove //
 } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -141,27 +141,48 @@ function RecipeDetail() {
   };
 
   const handleFavorite = async () => {
-    if (!user) {
-      alert('Please login to favorite recipes');
-      return;
-    }
+  if (!user) {
+    alert('Please login to favorite recipes');
+    return;
+  }
 
-    try {
-      const docRef = doc(db, 'recipes', id);
-      if (isFavorite) {
-        const updatedFavorites = recipe.favoritedBy.filter(uid => uid !== user.uid);
-        await updateDoc(docRef, { favoritedBy: updatedFavorites });
-        setIsFavorite(false);
-      } else {
-        await updateDoc(docRef, { 
-          favoritedBy: arrayUnion(user.uid) 
-        });
-        setIsFavorite(true);
-      }
-    } catch (error) {
-      console.error('Error updating favorites:', error);
+  // 1. Create a copy of the current list to avoid mutating state directly
+  const previousFavorites = recipe.favoritedBy || [];
+  let newFavorites;
+  let newIsFavoriteStatus;
+
+  if (isFavorite) {
+    // Remove logic
+    newFavorites = previousFavorites.filter(uid => uid !== user.uid);
+    newIsFavoriteStatus = false;
+  } else {
+    // Add logic
+    newFavorites = [...previousFavorites, user.uid];
+    newIsFavoriteStatus = true;
+  }
+
+  // 2. OPTIMISTIC UPDATE: Update UI immediately
+  setIsFavorite(newIsFavoriteStatus);
+  setRecipe({ ...recipe, favoritedBy: newFavorites });
+
+  // 3. Update Database in background
+  try {
+    const docRef = doc(db, 'recipes', id);
+    
+    if (newIsFavoriteStatus) {
+      await updateDoc(docRef, { favoritedBy: arrayUnion(user.uid) });
+    } else {
+      await updateDoc(docRef, { favoritedBy: arrayRemove(user.uid) });
     }
-  };
+  } catch (error) {
+    console.error('Error updating favorites:', error);
+    // 4. REVERT UI if database fails
+    setIsFavorite(!newIsFavoriteStatus);
+    setRecipe({ ...recipe, favoritedBy: previousFavorites });
+    alert("Failed to save favorite. Check your console for permission errors.");
+  }
+};
+
 
   const renderIngredient = (ing) => {
     if (typeof ing === 'string') {
@@ -180,7 +201,11 @@ function RecipeDetail() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="bg-gray-900 min-h-screen">
+    <div className="max-w-5xl mx-auto p-6 space-y-6
+     bg-white dark:bg-gray-900 
+     text-gray-900 dark:text-gray-100 
+     rounded-xl">
       {/* Image Gallery */}
       <div className="relative rounded-xl overflow-hidden shadow-lg">
         {images.length > 0 ? (
@@ -279,13 +304,13 @@ function RecipeDetail() {
             </button>
           ))}
         </div>
-        <span className="text-lg text-gray-600">
+        <span className="text-lg text-gray-600 dark:text-gray-300">
           {averageRating > 0 ? `${averageRating} / 5` : 'No ratings yet'}
           {recipe.ratings && ` (${recipe.ratings.length} ${recipe.ratings.length === 1 ? 'rating' : 'ratings'})`}
         </span>
       </div>
 
-      <p className="text-gray-700 text-lg">{recipe.description}</p>
+      <p className="text-gray-700 dark:text-gray-300 text-lg">{recipe.description}</p>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -416,6 +441,8 @@ function RecipeDetail() {
         )}
       </div>
     </div>
+    </div>
+    
   );
 }
 

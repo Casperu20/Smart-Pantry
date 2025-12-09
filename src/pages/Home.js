@@ -342,7 +342,7 @@ function Home() {
               </Link>
 
               <Link
-                to="/chatbot"
+                to="/pantry#cooking-assistant"
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <div className="text-4xl mb-3">🤖</div>

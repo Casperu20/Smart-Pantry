@@ -10,7 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import RecipeChatbot from "../components/RecipeChatbot";
 
 function Pantry() {
@@ -20,6 +20,8 @@ function Pantry() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [ingredients, setIngredients] = useState([{ name: "", quantity: "", unit: "" }]);
   const [searchTerm, setSearchTerm] = useState("");
+  const location = useLocation();
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -32,6 +34,17 @@ function Pantry() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (location.hash === '#cooking-assistant' && !loading) {
+      setTimeout(() => {
+        const element = document.getElementById('cooking-assistant');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 500);
+    }
+  }, [location.hash, loading]);
 
   const fetchPantryItems = async (userId) => {
     try {
@@ -49,6 +62,11 @@ function Pantry() {
       setLoading(false);
     }
   };
+
+  const [shouldExpandChatbot, setShouldExpandChatbot] = useState(
+    location.hash === '#cooking-assistant'
+  );
+
 
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...ingredients];
@@ -183,7 +201,7 @@ function Pantry() {
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Add Ingredients</h3>
             <form onSubmit={handleAddItem} className="space-y-4">
               {ingredients.map((ingredient, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                   <input
                     type="text"
                     placeholder="Ingredient name *"
@@ -320,9 +338,10 @@ function Pantry() {
             )}
           </div>
         )}
-        <div className="mt-12">
-          <RecipeChatbot />
+        <div id="cooking-assistant" className="mt-12">
+          <RecipeChatbot initiallyExpanded={shouldExpandChatbot} />
         </div>
+
       </div>
     </div>
   );
