@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
+<<<<<<< HEAD
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   doc, getDoc, collection, addDoc, getDocs,
   query, where, orderBy, updateDoc, arrayUnion
+=======
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  doc, getDoc, collection, addDoc, getDocs, 
+  query, where, orderBy, updateDoc, arrayUnion, arrayRemove //
+>>>>>>> origin/main
 } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -160,11 +167,12 @@ function RecipeDetail() {
   };
 
   const handleFavorite = async () => {
-    if (!user) {
-      alert('Please login to favorite recipes');
-      return;
-    }
+  if (!user) {
+    alert('Please login to favorite recipes');
+    return;
+  }
 
+<<<<<<< HEAD
     try {
       const docRef = doc(db, 'recipes', id);
       if (isFavorite) {
@@ -179,8 +187,45 @@ function RecipeDetail() {
       }
     } catch (error) {
       console.error('Error updating favorites:', error);
+=======
+  // 1. Create a copy of the current list to avoid mutating state directly
+  const previousFavorites = recipe.favoritedBy || [];
+  let newFavorites;
+  let newIsFavoriteStatus;
+
+  if (isFavorite) {
+    // Remove logic
+    newFavorites = previousFavorites.filter(uid => uid !== user.uid);
+    newIsFavoriteStatus = false;
+  } else {
+    // Add logic
+    newFavorites = [...previousFavorites, user.uid];
+    newIsFavoriteStatus = true;
+  }
+
+  // 2. OPTIMISTIC UPDATE: Update UI immediately
+  setIsFavorite(newIsFavoriteStatus);
+  setRecipe({ ...recipe, favoritedBy: newFavorites });
+
+  // 3. Update Database in background
+  try {
+    const docRef = doc(db, 'recipes', id);
+    
+    if (newIsFavoriteStatus) {
+      await updateDoc(docRef, { favoritedBy: arrayUnion(user.uid) });
+    } else {
+      await updateDoc(docRef, { favoritedBy: arrayRemove(user.uid) });
+>>>>>>> origin/main
     }
-  };
+  } catch (error) {
+    console.error('Error updating favorites:', error);
+    // 4. REVERT UI if database fails
+    setIsFavorite(!newIsFavoriteStatus);
+    setRecipe({ ...recipe, favoritedBy: previousFavorites });
+    alert("Failed to save favorite. Check your console for permission errors.");
+  }
+};
+
 
   const renderIngredient = (ing) => {
     if (typeof ing === 'string') {
@@ -199,6 +244,7 @@ function RecipeDetail() {
   );
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="max-w-5xl mx-auto px-4 py-6 lg:py-10 space-y-6">
         {/* Topbar with theme toggle & back link */}
@@ -393,6 +439,24 @@ function RecipeDetail() {
               onSave={() => {
                 setShowRemix(false);
                 fetchRemixes();
+=======
+    <div className="bg-gray-900 min-h-screen">
+    <div className="max-w-5xl mx-auto p-6 space-y-6
+     bg-white dark:bg-gray-900 
+     text-gray-900 dark:text-gray-100 
+     rounded-xl">
+      {/* Image Gallery */}
+      <div className="relative rounded-xl overflow-hidden shadow-lg">
+        {images.length > 0 ? (
+          <>
+            <img 
+              src={images[currentImageIndex]} 
+              alt={recipe.name}
+              className="w-full h-96 object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'flex';
+>>>>>>> origin/main
               }}
             />
           </div>
@@ -436,6 +500,7 @@ function RecipeDetail() {
         <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
           <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-green-600 dark:text-green-400">Comments ({comments.length})</h2>
 
+<<<<<<< HEAD
           {user ? (
             <div className="mb-6">
               <textarea
@@ -450,6 +515,91 @@ function RecipeDetail() {
                   onClick={handleCommentSubmit}
                   disabled={!newComment.trim()}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed"
+=======
+      {/* Rating */}
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => handleRating(star)}
+              className={`text-3xl ${
+                star <= (userRating || 0) ? 'text-yellow-500' : 'text-gray-300'
+              } hover:text-yellow-400 transition`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+        <span className="text-lg text-gray-600 dark:text-gray-300">
+          {averageRating > 0 ? `${averageRating} / 5` : 'No ratings yet'}
+          {recipe.ratings && ` (${recipe.ratings.length} ${recipe.ratings.length === 1 ? 'rating' : 'ratings'})`}
+        </span>
+      </div>
+
+      <p className="text-gray-700 dark:text-gray-300 text-lg">{recipe.description}</p>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Ingredients - Dark Theme Enforced */}
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">Ingredients</h2>
+          <ul className="space-y-2">
+            {recipe.ingredients?.map((ing, i) => (
+              <li key={i} className="flex items-start">
+                <span className="text-green-500 mr-2">•</span>
+                <span className="text-gray-300">{renderIngredient(ing)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        {/* Instructions - Dark Theme Enforced */}
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">Instructions</h2>
+          <p className="text-gray-300 whitespace-pre-line">{recipe.instructions}</p>
+        </div>
+      </div>
+
+      {/* Remix Button */}
+      {user && (
+        <button
+          onClick={() => setShowRemix(!showRemix)}
+          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold"
+        >
+          {showRemix ? 'Cancel Remix' : '🎨 Remix This Recipe'}
+        </button>
+      )}
+
+      {showRemix && (
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-xl font-semibold mb-4">Create Your Remix</h3>
+          <RecipeForm 
+            defaultRecipe={recipe} 
+            isRemix={true}
+            originalRecipeId={id}
+            onSave={() => {
+              setShowRemix(false);
+              fetchRemixes();
+            }} 
+          />
+        </div>
+      )}
+
+      {/* Remixes Section - Dark Theme Enforced */}
+      {remixes.length > 0 && (
+        <div className="bg-gray-900 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4 text-green-500">
+            Community Remixes ({remixes.length})
+          </h2>
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 pb-4">
+              {remixes.map((remix) => (
+                <Link
+                  key={remix.id}
+                  to={`/recipe/${remix.id}`}
+                  className="flex-shrink-0 w-64 bg-gray-800 rounded-lg overflow-hidden hover:shadow-lg transition border border-gray-700"
+>>>>>>> origin/main
                 >
                   Post Comment
                 </button>
@@ -488,6 +638,8 @@ function RecipeDetail() {
         </div>
       </div>
     </div>
+    </div>
+    
   );
 }
 

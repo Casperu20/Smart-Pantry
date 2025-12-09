@@ -252,7 +252,7 @@ function MealPlanner() {
             {/* Stats */}
             <div className="flex-1 min-w-[200px]">
               <div className="flex items-center gap-6">
-                <div className="bg-green-50 dark:bg-green-900/20 px-6 py-3 rounded-lg">
+                <div className="bg-green-50 dark:bg-gray-700 border border-green-200 dark:border-green-800 px-6 py-3 rounded-lg">
                   <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                     Planned Meals
                   </div>
@@ -260,7 +260,7 @@ function MealPlanner() {
                     {getTotalRecipes()}
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 rounded-lg">
+                <div className="bg-blue-50 dark:bg-gray-700 border border-blue-200 dark:border-blue-800 px-6 py-3 rounded-lg">
                   <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                     This Week
                   </div>
