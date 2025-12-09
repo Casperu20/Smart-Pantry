@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase/config';
-import RecipeForm from '../components/RecipeForm'; // Adjust path if needed
+import RecipeForm from '../components/RecipeForm';
 
 function EditRecipe() {
   const { id } = useParams();
@@ -58,8 +58,6 @@ function EditRecipe() {
   };
 
   // 3. Handle the Update Logic
-  // This assumes your RecipeForm can accept an 'onSubmit' prop or handles logic internally.
-  // Ideally, we handle the DB update here to keep the Form pure.
   const handleUpdate = async (formData) => {
     try {
       const docRef = doc(db, 'recipes', id);
@@ -86,29 +84,27 @@ function EditRecipe() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-gray-600">Loading editor...</div>
+      <div className="flex justify-center items-center h-screen bg-white dark:bg-gray-900">
+        <div className="text-xl text-gray-600 dark:text-gray-300">Loading editor...</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8 border-b pb-4">
-        Edit Recipe
-      </h1>
-      
-      {/* We reuse RecipeForm. 
-        We pass defaultRecipe so fields are pre-filled.
-        We pass isEditMode so the form knows it's not a new recipe.
-      */}
-      {recipe && (
-        <RecipeForm 
-          defaultRecipe={recipe} 
-          isEditMode={true}
-          onSubmit={handleUpdate} // You might need to update RecipeForm to use this
-        />
-      )}
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
+          Edit Recipe
+        </h1>
+        
+        {recipe && (
+          <RecipeForm 
+            defaultRecipe={recipe} 
+            isEditMode={true}
+            onSubmit={handleUpdate}
+          />
+        )}
+      </div>
     </div>
   );
 }
