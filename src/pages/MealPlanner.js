@@ -146,16 +146,14 @@ function MealPlanner() {
     setSelectedSlot({ day, mealType });
     setShowRecipeSelector(true);
     setSearchTerm('');
-    setCategoryFilter('all');
+    // Set initial filter to the meal type being selected (lowercase to match category values)
+    setCategoryFilter(mealType.toLowerCase());
   };
 
   const filteredRecipes = recipes.filter(recipe => {
     const matchesSearch = recipe.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || recipe.category === categoryFilter;
-    const matchesMealType = selectedSlot 
-      ? CATEGORY_TO_MEALTYPE[recipe.category?.toLowerCase()]?.includes(selectedSlot.mealType)
-      : true;
-    return matchesSearch && matchesCategory && matchesMealType;
+    return matchesSearch && matchesCategory;
   });
 
   const generateShoppingList = () => {
@@ -275,15 +273,13 @@ function MealPlanner() {
             <div className="flex gap-3 flex-wrap">
               <button
                 onClick={() => setEditMode(!editMode)}
-                className={`${
-                  editMode 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
-                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-                } ${
-                  editMode 
-                    ? 'text-white' 
+                className={`${editMode
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  } ${editMode
+                    ? 'text-white'
                     : 'text-gray-700 dark:text-gray-200'
-                } px-6 py-3 rounded-lg shadow-lg transition font-semibold flex items-center gap-2`}
+                  } px-6 py-3 rounded-lg shadow-lg transition font-semibold flex items-center gap-2`}
               >
                 <span className="text-xl">{editMode ? '✓' : '✏️'}</span>
                 <span>{editMode ? 'Done' : 'Edit'}</span>
@@ -323,7 +319,7 @@ function MealPlanner() {
               </thead>
               <tbody>
                 {MEAL_TYPES.map((mealType, idx) => (
-                  <tr 
+                  <tr
                     key={mealType}
                     className="border-t border-gray-200 dark:border-gray-700"
                   >
@@ -342,41 +338,27 @@ function MealPlanner() {
                             {selectedRecipes.map(recipe => (
                               <div
                                 key={recipe.id}
-                                className="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-200 dark:border-gray-600 overflow-hidden"
+                                className="group relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-200 dark:border-gray-600 overflow-hidden h-16"
                               >
-                                <Link to={`/recipe/${recipe.id}`} className="block">
-                                  <div className="flex items-start gap-3 p-3">
+                                <Link to={`/recipe/${recipe.id}`} className="block h-full">
+                                  <div className="flex items-center gap-3 p-2 h-full">
                                     <div className="flex-shrink-0">
                                       {recipe.imageUrl || recipe.images?.[0] ? (
                                         <img
                                           src={recipe.imageUrl || recipe.images[0]}
                                           alt={recipe.name}
-                                          className="w-14 h-14 rounded-lg object-cover shadow-md"
+                                          className="w-12 h-12 rounded-lg object-cover shadow-md"
                                         />
                                       ) : (
-                                        <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${MEAL_COLORS[mealType]} flex items-center justify-center shadow-md`}>
-                                          <span className="text-2xl">🍽️</span>
+                                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${MEAL_COLORS[mealType]} flex items-center justify-center shadow-md`}>
+                                          <span className="text-xl">🍽️</span>
                                         </div>
                                       )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-1 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-500 transition">
+                                      <p className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-2 group-hover:text-green-600 dark:group-hover:text-green-500 transition">
                                         {recipe.name}
                                       </p>
-                                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                        {recipe.prepTime && (
-                                          <span className="flex items-center gap-1">
-                                            <span>⏱️</span>
-                                            {recipe.prepTime}
-                                          </span>
-                                        )}
-                                        {recipe.servings && (
-                                          <span className="flex items-center gap-1">
-                                            <span>👥</span>
-                                            {recipe.servings}
-                                          </span>
-                                        )}
-                                      </div>
                                     </div>
                                   </div>
                                 </Link>
@@ -386,7 +368,7 @@ function MealPlanner() {
                                       e.preventDefault();
                                       removeRecipeFromSlot(day, mealType, recipe.id);
                                     }}
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm transition shadow-lg font-bold"
+                                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs transition shadow-lg font-bold"
                                     title="Remove recipe"
                                   >
                                     ✕
@@ -443,38 +425,35 @@ function MealPlanner() {
                         {selectedRecipes.map(recipe => (
                           <div
                             key={recipe.id}
-                            className="group relative bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
+                            className="group relative bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 h-14 overflow-hidden"
                           >
-                            <Link to={`/recipe/${recipe.id}`} className="flex items-center gap-3">
-                              {recipe.imageUrl && (
+                            <Link to={`/recipe/${recipe.id}`} className="flex items-center gap-3 p-2 h-full">
+                              {recipe.imageUrl || recipe.images?.[0] ? (
                                 <img
-                                  src={recipe.imageUrl}
+                                  src={recipe.imageUrl || recipe.images[0]}
                                   alt={recipe.name}
-                                  className="w-12 h-12 rounded-lg object-cover"
+                                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                                 />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-lg">🍽️</span>
+                                </div>
                               )}
-                              <div className="flex-1">
-                                <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
-                                  {recipe.name}
-                                </p>
-                                {recipe.prepTime && (
-                                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                                    ⏱️ {recipe.prepTime}
-                                  </p>
-                                )}
-                              </div>
+                              <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm line-clamp-2 flex-1">
+                                {recipe.name}
+                              </p>
                             </Link>
                             {editMode && (
                               <button
                                 onClick={() => removeRecipeFromSlot(day, mealType, recipe.id)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                               >
                                 ✕
                               </button>
                             )}
                           </div>
                         ))}
-                        
+
                         {/* Add Recipe Button - Only show in edit mode */}
                         {editMode && (
                           <button
@@ -504,7 +483,7 @@ function MealPlanner() {
         {showShoppingList && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 overflow-auto backdrop-blur-sm">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden mt-12">
-             <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">

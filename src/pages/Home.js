@@ -610,7 +610,7 @@ function Home() {
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                 Track Your Pantry
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-gray-700">
                 Keep track of what ingredients you have at home. Never buy duplicates or forget what's in your kitchen.
               </p>
             </div>
@@ -621,18 +621,18 @@ function Home() {
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Smart Suggestions
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-700">
                 Get recipe recommendations based on what you already have. Cook with confidence using your pantry items.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-400 dark:to-purple-300 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-2">
+            <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-400 dark:to-red-300 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-2">
               <div className="text-6xl mb-4">🎨</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Create & Remix
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-700">
                 Share your recipes or remix others' creations. Build a personalized cookbook that grows with you.
               </p>
             </div>
