@@ -44,10 +44,10 @@ const MEAL_EMOJIS = {
 };
 
 const MEAL_COLORS = {
-  Breakfast: 'from-yellow-400 to-yellow-600',
-  Lunch: 'from-blue-400 to-blue-600',
-  Dinner: 'from-purple-400 to-purple-600',
-  Snack: 'from-pink-400 to-pink-600'
+  Breakfast: 'from-sunny-400 to-sunny-600',
+  Lunch: 'from-ocean-400 to-ocean-600',
+  Dinner: 'from-berry-400 to-berry-600',
+  Snack: 'from-mint-400 to-mint-600'
 };
 
 function MealPlanner() {
@@ -219,12 +219,12 @@ function MealPlanner() {
 
   if (!user) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-white dark:bg-gray-900">
+      <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-sunny-50 via-ocean-50 to-berry-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="text-6xl mb-4">📅</div>
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
           Please login to use Meal Planner
         </h2>
-        <Link to="/login" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+        <Link to="/login" className="bg-gradient-to-r from-coral-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-coral-600 hover:to-pink-600 transition shadow-lg">
           Login
         </Link>
       </div>
@@ -232,12 +232,13 @@ function MealPlanner() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-sunny-50 via-ocean-50 to-berry-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
       <div className="max-w-[1800px] mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-green-700 dark:text-green-500 mb-2">
-            📅 Weekly Meal Planner
+          <h1 className="text-4xl font-bold mb-2 pb-1">
+            <span className="mr-2">📅</span>
+            <span className="bg-gradient-to-r from-coral-500 via-sunny-400 to-ocean-500 bg-clip-text text-transparent">Weekly Meal Planner</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Plan your meals for the week and generate a shopping list automatically
@@ -250,19 +251,19 @@ function MealPlanner() {
             {/* Stats */}
             <div className="flex-1 min-w-[200px]">
               <div className="flex items-center gap-6">
-                <div className="bg-green-50 dark:bg-gray-700 border border-green-200 dark:border-green-800 px-6 py-3 rounded-lg">
+                <div className="bg-coral-50 dark:bg-gray-700 border border-coral-200 dark:border-coral-800 px-6 py-3 rounded-lg">
                   <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                     Planned Meals
                   </div>
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-500">
+                  <div className="text-3xl font-bold text-coral-500 dark:text-coral-400">
                     {getTotalRecipes()}
                   </div>
                 </div>
-                <div className="bg-blue-50 dark:bg-gray-700 border border-blue-200 dark:border-blue-800 px-6 py-3 rounded-lg">
+                <div className="bg-ocean-50 dark:bg-gray-700 border border-ocean-200 dark:border-ocean-800 px-6 py-3 rounded-lg">
                   <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
                     This Week
                   </div>
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-500">
+                  <div className="text-3xl font-bold text-ocean-500 dark:text-ocean-400">
                     {DAYS_OF_WEEK.length}
                   </div>
                 </div>
@@ -287,7 +288,7 @@ function MealPlanner() {
 
               <button
                 onClick={generateShoppingList}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition font-semibold flex items-center gap-2 transform hover:scale-105"
+                className="bg-gradient-to-r from-coral-500 to-pink-500 hover:from-coral-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg shadow-lg transition font-semibold flex items-center gap-2 transform hover:scale-105"
               >
                 <span className="text-xl">🛒</span>
                 <span>Shopping List</span>
@@ -307,11 +308,11 @@ function MealPlanner() {
         <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           <div className="overflow-x-auto">
             <table className="w-full table-fixed">
-              <thead className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800">
+              <thead className="bg-gradient-to-r from-coral-500 via-sunny-500 to-ocean-500 dark:from-coral-600 dark:via-sunny-600 dark:to-ocean-600">
                 <tr>
-                  <th className="p-4 text-left text-white font-bold w-40 border-r border-green-500">Meal Type</th>
+                  <th className="p-4 text-left text-white font-bold w-40 border-r border-white/30">Meal Type</th>
                   {DAYS_OF_WEEK.map(day => (
-                    <th key={day} className="p-4 text-center text-white font-bold border-r border-green-500 last:border-r-0">
+                    <th key={day} className="p-4 text-center text-white font-bold border-r border-white/30 last:border-r-0">
                       {day}
                     </th>
                   ))}
@@ -381,7 +382,7 @@ function MealPlanner() {
                             {editMode && (
                               <button
                                 onClick={() => openRecipeSelector(day, mealType)}
-                                className="w-full bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 hover:border-green-500 dark:hover:border-green-500 text-green-600 dark:text-green-500 py-3 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                                className="w-full bg-white dark:bg-gray-700 hover:bg-ocean-50 dark:hover:bg-ocean-900/30 border-2 border-dashed border-ocean-300 dark:border-ocean-700 hover:border-ocean-500 dark:hover:border-ocean-500 text-ocean-600 dark:text-ocean-400 py-3 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                               >
                                 <span className="text-lg">+</span>
                                 <span>Add Recipe</span>
@@ -409,7 +410,7 @@ function MealPlanner() {
         <div className="lg:hidden space-y-6">
           {DAYS_OF_WEEK.map(day => (
             <div key={day} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-4">
+              <div className="bg-gradient-to-r from-coral-500 via-sunny-500 to-ocean-500 dark:from-coral-600 dark:via-sunny-600 dark:to-ocean-600 p-4">
                 <h2 className="text-xl font-bold text-white">{day}</h2>
               </div>
               <div className="p-4 space-y-4">
@@ -458,7 +459,7 @@ function MealPlanner() {
                         {editMode && (
                           <button
                             onClick={() => openRecipeSelector(day, mealType)}
-                            className="w-full bg-green-50 dark:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 text-green-600 dark:text-green-500 py-2 rounded-lg text-sm font-semibold"
+                            className="w-full bg-ocean-50 dark:bg-ocean-900/30 border-2 border-dashed border-ocean-300 dark:border-ocean-700 text-ocean-600 dark:text-ocean-400 py-2 rounded-lg text-sm font-semibold"
                           >
                             + Add Recipe
                           </button>
@@ -483,14 +484,14 @@ function MealPlanner() {
         {showShoppingList && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 overflow-auto backdrop-blur-sm">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden mt-12">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
+              <div className="bg-gradient-to-r from-coral-500 to-pink-500 dark:from-coral-600 dark:to-pink-600 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">
                       <span className="text-4xl">🛒</span>
                       Shopping List
                     </h2>
-                    <p className="text-green-100 text-sm mt-1">
+                    <p className="text-coral-100 text-sm mt-1">
                       {shoppingList.length} ingredient{shoppingList.length !== 1 ? 's' : ''} needed for this week
                     </p>
                   </div>
@@ -510,7 +511,7 @@ function MealPlanner() {
                           <span className="text-gray-800 dark:text-gray-100 font-semibold capitalize">
                             {ing.name}
                           </span>
-                          <span className="text-green-600 dark:text-green-500 font-bold ml-2">
+                          <span className="text-coral-500 dark:text-coral-400 font-bold ml-2">
                             {ing.quantity > 0 ? `${Math.round(ing.quantity * 100) / 100} ${ing.unit}` : ing.unit || 'as needed'}
                           </span>
                         </div>
@@ -538,7 +539,7 @@ function MealPlanner() {
                     navigator.clipboard.writeText(text);
                     alert('✅ Shopping list copied to clipboard!');
                   }}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition shadow-lg transform hover:scale-105"
+                  className="flex-1 bg-gradient-to-r from-coral-500 to-pink-500 hover:from-coral-600 hover:to-pink-600 text-white px-6 py-4 rounded-xl font-bold text-lg transition shadow-lg transform hover:scale-105"
                 >
                   📋 Copy to Clipboard
                 </button>
@@ -557,11 +558,11 @@ function MealPlanner() {
         {showRecipeSelector && selectedSlot && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-start z-50 p-4 overflow-auto backdrop-blur-sm">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden mt-12">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 p-6">
+              <div className="bg-gradient-to-r from-ocean-500 to-mint-500 dark:from-ocean-600 dark:to-mint-600 p-6">
                 <h2 className="text-3xl font-bold text-white mb-2">
                   Add Recipe
                 </h2>
-                <p className="text-green-100">
+                <p className="text-ocean-100">
                   <span className="font-semibold">{selectedSlot.day}</span> • <span className="font-semibold">{selectedSlot.mealType}</span>
                 </p>
               </div>
@@ -574,12 +575,12 @@ function MealPlanner() {
                     placeholder="🔍 Search recipes..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-green-600 dark:focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-ocean-500 dark:focus:border-ocean-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                   <select
                     value={categoryFilter}
                     onChange={e => setCategoryFilter(e.target.value)}
-                    className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-green-600 dark:focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:border-ocean-500 dark:focus:border-ocean-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="all">All Categories</option>
                     <option value="breakfast">Breakfast</option>
@@ -600,7 +601,7 @@ function MealPlanner() {
                         <button
                           key={recipe.id}
                           onClick={() => addRecipeToSlot(selectedSlot.day, selectedSlot.mealType, recipe)}
-                          className="text-left bg-white dark:bg-gray-700 rounded-xl overflow-hidden hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500 transform hover:-translate-y-1"
+                          className="text-left bg-white dark:bg-gray-700 rounded-xl overflow-hidden hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-600 hover:border-ocean-500 dark:hover:border-ocean-400 transform hover:-translate-y-1"
                         >
                           <RecipeImage recipe={recipe} className="w-full h-40" showBadge={true} />
                           <div className="p-4">
@@ -636,7 +637,7 @@ function MealPlanner() {
                 <div className="mt-4 flex gap-3">
                   <Link
                     to="/recipes/new"
-                    className="ml-auto bg-white dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/30 border-2 border-dashed border-green-300 dark:border-green-700 text-green-600 dark:text-green-500 py-2 px-4 rounded-xl text-sm font-semibold"
+                    className="ml-auto bg-white dark:bg-gray-700 hover:bg-ocean-50 dark:hover:bg-ocean-900/30 border-2 border-dashed border-ocean-300 dark:border-ocean-700 text-ocean-600 dark:text-ocean-400 py-2 px-4 rounded-xl text-sm font-semibold"
                     onClick={() => {
                       setShowRecipeSelector(false);
                       setSelectedSlot(null);
