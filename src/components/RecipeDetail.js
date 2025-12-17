@@ -222,19 +222,19 @@ function RecipeDetail() {
             {recipe.prepTime && (
               <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
                 <span className="text-blue-600 dark:text-blue-400">⏱️</span>
-                <span className="text-gray-700 dark:text-gray-700">{recipe.prepTime}</span>
+                <span className="text-gray-700 dark:text-gray-300">{recipe.prepTime}</span>
               </div>
             )}
             {recipe.servings && (
               <div className="flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-3 py-1 rounded-full">
                 <span className="text-purple-600 dark:text-purple-400">🍽️</span>
-                <span className="text-gray-700 dark:text-gray-700">{recipe.servings}</span>
+                <span className="text-gray-700 dark:text-gray-300">{recipe.servings}</span>
               </div>
             )}
             {recipe.category && (
               <div className="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">
                 <span className="text-green-600 dark:text-green-400">📂</span>
-                <span className="text-gray-700 dark:text-gray-700 capitalize">{recipe.category}</span>
+                <span className="text-gray-700 dark:text-gray-300 capitalize">{recipe.category}</span>
               </div>
             )}
           </div>

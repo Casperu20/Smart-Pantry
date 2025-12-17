@@ -162,16 +162,6 @@ function Profile() {
               {user.displayName || 'User'}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base break-all">{user.email}</p>
-            <div className="flex gap-2 sm:gap-4 mt-4 text-sm justify-center sm:justify-start">
-              <div className="bg-coral-50 dark:bg-gray-800 px-3 sm:px-4 py-2 rounded-lg border border-coral-200 dark:border-red-400/30">
-                <span className="font-semibold text-coral-600 dark:text-coral-400">{userRecipes.length}</span>
-                <span className="text-gray-600 dark:text-gray-400 ml-1">Recipes</span>
-              </div>
-              <div className="bg-ocean-50 dark:bg-gray-800 px-3 sm:px-4 py-2 rounded-lg border border-ocean-200 dark:border-cyan-400/30">
-                <span className="font-semibold text-ocean-600 dark:text-cyan-400">{favoriteRecipes.length}</span>
-                <span className="text-gray-600 dark:text-gray-400 ml-1">Favorites</span>
-              </div>
-            </div>
           </div>
           <button
             onClick={handleLogout}
@@ -186,21 +176,21 @@ function Profile() {
       <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('recipes')}
-          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base ${activeTab === 'recipes'
+          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base flex items-center gap-2 ${activeTab === 'recipes'
             ? 'bg-gradient-to-r from-coral-500 to-pink-500 text-white shadow-lg'
             : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
         >
-          My Recipes ({userRecipes.length})
+          <span>🍳</span> My Recipes <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'recipes' ? 'bg-white text-coral-600' : 'bg-coral-100 dark:bg-coral-900/30 text-coral-600 dark:text-coral-400'}`}>{userRecipes.length}</span>
         </button>
         <button
           onClick={() => setActiveTab('favorites')}
-          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base ${activeTab === 'favorites'
+          className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition whitespace-nowrap text-sm sm:text-base flex items-center gap-2 ${activeTab === 'favorites'
             ? 'bg-gradient-to-r from-ocean-500 to-mint-500 text-white shadow-lg'
             : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
         >
-          Favorites ({favoriteRecipes.length})
+          <span>❤️</span> Favorites <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === 'favorites' ? 'bg-white text-ocean-600' : 'bg-ocean-100 dark:bg-ocean-900/30 text-ocean-600 dark:text-cyan-400'}`}>{favoriteRecipes.length}</span>
         </button>
       </div>
 
@@ -216,9 +206,16 @@ function Profile() {
                   </Link>
                   <div className="p-3 sm:p-4 flex flex-col flex-1">
                     <Link to={`/recipe/${recipe.id}`}>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-ocean-500 dark:hover:text-cyan-400 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]">
-                        {recipe.name}
-                      </h3>
+                      <div className="flex items-start gap-2 mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 hover:text-ocean-500 dark:hover:text-cyan-400 line-clamp-2 flex-1">
+                          {recipe.name}
+                        </h3>
+                        {recipe.isRemix && (
+                          <span className="flex-shrink-0 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                            Remix
+                          </span>
+                        )}
+                      </div>
                     </Link>
                     <div className="flex-1 mb-3">
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
@@ -284,9 +281,16 @@ function Profile() {
                   </Link>
                   <div className="p-3 sm:p-4 flex flex-col flex-1">
                     <Link to={`/recipe/${recipe.id}`}>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 hover:text-ocean-500 dark:hover:text-cyan-400 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]">
-                        {recipe.name}
-                      </h3>
+                      <div className="flex items-start gap-2 mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 hover:text-ocean-500 dark:hover:text-cyan-400 line-clamp-2 flex-1">
+                          {recipe.name}
+                        </h3>
+                        {recipe.isRemix && (
+                          <span className="flex-shrink-0 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                            Remix
+                          </span>
+                        )}
+                      </div>
                     </Link>
                     <div className="flex-1">
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
